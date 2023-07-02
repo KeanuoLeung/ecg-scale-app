@@ -1,0 +1,7 @@
+{
+  "name": "ecg-scale-app",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "react"
+}
