@@ -1,0 +1,41 @@
+.heart {
+  --per-beat: 0.5s;
+  width: 30px;
+  height: 30px;
+  background: #f90b57;
+  position: relative;
+  box-shadow: 0 0 20px #ff155f, 0 0 60px #ff155f;
+  transform: rotate(-45deg);
+  animation: heart var(--per-beat) linear infinite 0s alternate;
+}
+@keyframes heart {
+  0% {
+    transform: rotate(-45deg) scale(1);
+  }
+  90% {
+    transform: rotate(-45deg) scale(1.3);
+  }
+  100% {
+    transform: rotate(-45deg) scale(1.2);
+  }
+}
+.heart::before {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: #f90b57;
+  border-radius: 50%;
+  left: 0;
+  top: -50%;
+}
+.heart::after {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: #f90b57;
+  border-radius: 50%;
+  top: 0;
+  right: -50%;
+}

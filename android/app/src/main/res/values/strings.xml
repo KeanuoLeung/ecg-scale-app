@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">ecg-scale-app</string>
+    <string name="title_activity_main">ecg-scale-app</string>
+    <string name="package_name">com.cheroee.combinedemo</string>
+    <string name="custom_url_scheme">com.cheroee.combinedemo</string>
+</resources>
