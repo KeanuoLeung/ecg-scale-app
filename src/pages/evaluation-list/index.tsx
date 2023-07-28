@@ -1,9 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import localforage from 'localforage';
 
 import './index.css';
 import { useHistory } from 'react-router';
 import { IonPage } from '@ionic/react';
+import { db } from '../../db';
+import { EcgDeviceContext } from '../../tools/ecg-plugin';
 
 type Evaluation = {
   scaleName: string;
@@ -19,6 +21,13 @@ type Evaluation = {
 function EvaluationList() {
   const history = useHistory();
   const [evaluations, setEvalutions] = useState<Evaluation[]>([]);
+  const {
+    connectToDevice,
+    debugMessages,
+    deviceState,
+    currentDeviceId,
+    stopMonitor,
+  } = useContext(EcgDeviceContext);
 
   useEffect(() => {
     const testEvaluations = [
@@ -58,12 +67,39 @@ function EvaluationList() {
     localforage.getItem('evaluations').then((res) => {
       console.log('result', res);
     });
+
+    db.friends.add({
+      name: 'John',
+      age: { req: 'nono', what: { a: 1 } },
+    } as any);
+    const friends = db.friends
+      .where({ name: 'John' })
+      .toArray()
+      .then((fr) => {
+        console.log('friends', fr);
+      });
   }, []);
   return (
     <IonPage>
       <div className="list">
         <div className="list-title">🌞 欢迎您，user22</div>
-        <div className="list-subtitle">请选择量表开始测试</div>
+        <div
+          className="list-subtitle"
+          onClick={() => {
+            if (deviceState === 'offline') connectToDevice();
+            if (deviceState === 'online') {
+              const result = stopMonitor();
+              alert(JSON.stringify(result));
+            }
+          }}
+        >
+          请选择量表开始测试 {deviceState} {currentDeviceId}
+        </div>
+        {debugMessages.map((msg) => (
+          <div key={msg} className="list-subtitle">
+            {msg}
+          </div>
+        ))}
         {evaluations.map((evaluation) => (
           <div
             className="list-card"

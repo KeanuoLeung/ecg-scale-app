@@ -10,8 +10,10 @@ import android.widget.Toast;
 import com.cheroee.cherosdk.ChMsg;
 import com.cheroee.cherosdk.ChSdkManager;
 import com.cheroee.cherosdk.bluetooth.ChScanResult;
+import com.cheroee.cherosdk.ecg.model.ChDetectionResult;
 import com.cheroee.cherosdk.ecg.model.ChEcgSmoothedData;
 import com.cheroee.cherosdk.ecg.model.ChHeartRate;
+import com.ecgparser.healthcloud.ecgparser.EcgHrvReport;
 import com.ecgparser.healthcloud.ecgparser.EcgLib;
 import com.getcapacitor.JSArray;
 import com.getcapacitor.JSObject;
@@ -22,6 +24,7 @@ import com.getcapacitor.annotation.CapacitorPlugin;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Optional;
 
 @CapacitorPlugin(name = "Ecg")
@@ -32,6 +35,20 @@ public class EcgPlugin extends Plugin {
     private Handler mHandler;
     private ArrayList<ChScanResult> deviceList;
 
+    public static String arrayToStringWithNewLine(float[] array) {
+        if (array == null || array.length == 0) {
+            return "[]";
+        }
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("[\n");
+        for (float value : array) {
+            sb.append("    ").append(value).append("\n");
+        }
+        sb.append("]");
+
+        return sb.toString();
+    }
     @Override
     public void load() {
         super.load();
@@ -42,7 +59,7 @@ public class EcgPlugin extends Plugin {
             }
         };
         ChSdkManager.getInstance().init(mHandler, getActivity().getApplicationContext());
-//        checkLicense();
+        checkLicense();
 //
 //        // SD卡正常挂载（可读写）
 //        if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())) {
@@ -56,12 +73,11 @@ public class EcgPlugin extends Plugin {
     }
 
     private void onReceviceEvent(Message msg) {
-        Log.e("EVENT", String.format("%d", msg.what));
         JSObject raw = new JSObject();
         raw.put("what", msg.what);
         raw.put("arg1", msg.arg1);
         raw.put("arg2", msg.arg2);
-        notifyListeners("ecgRawMessage", raw);
+        // notifyListeners("ecgRawMessage", raw);
         showToast("响应时间" + String.format("%d", msg.what));
         switch (msg.what) {
             case ChMsg.MSG_SCAN_START:
@@ -71,15 +87,26 @@ public class EcgPlugin extends Plugin {
                 onScanResult((ChScanResult) msg.obj);
                 break;
             case ChMsg.MSG_SCAN_FAIL:
-                Log.e("扫描失败", String.format("%d", msg.arg1));
                 break;
             case ChMsg.MSG_ECG_SMOOTH_ECG:
                 onRaw(msg);
                 break;
+            case ChMsg.MSG_ECG_RESULT:
+                onEcgResult(msg);
+                break;
             case ChMsg.MSG_ECG_HR:
                 onHeartRate(msg);
                 break;
+            case ChMsg.MSG_CONNECTED:
+                onConnected();
+                break;
         }
+    }
+
+    private void onConnected() {
+        JSObject event = new JSObject();
+        event.put("success", true);
+        notifyListeners("connected", event);
     }
 
     private void onRaw(Message msg) {
@@ -103,6 +130,20 @@ public class EcgPlugin extends Plugin {
 
     }
 
+    private void onEcgResult(Message msg) {
+        ChDetectionResult result = (ChDetectionResult) msg.obj;
+        JSObject ecg = new JSObject();
+        ecg.put("time", result.time);
+        ecg.put("qrsIndex", result.qrsIndex);
+        ecg.put("qrsDelay", result.qrsDelay);
+        ecg.put("beatType", result.beatType);
+        ecg.put("rrInterval", result.rrInterval);
+        ecg.put("heartRate", result.heartRate);
+        ecg.put("morphType", result.morphType);
+        ecg.put("morphId", result.morphId);
+
+        notifyListeners("ecgResult", ecg);
+    }
     private void onScanResult(ChScanResult result) {
         showToast("扫描到了！");
 
@@ -127,7 +168,6 @@ public class EcgPlugin extends Plugin {
         JSObject deviceFoundResult = new JSObject();
         deviceFoundResult.put("devices", notifyList);
         notifyListeners("ecgDeviceFound", deviceFoundResult);
-        Log.e("SCAN", "scan result : " + result.pid + " Length: " + deviceList.size());
     }
 
     private void onHeartRate(Message msg) {
@@ -144,13 +184,17 @@ public class EcgPlugin extends Plugin {
         ChSdkManager.getInstance().startScan(-1);
     }
 
+    @PluginMethod
+    public void stopScan(PluginCall call) {
+        ChSdkManager.getInstance().stopScan();
+        deviceList = new ArrayList<>();
+    }
+
     @PluginMethod()
     public void connect(PluginCall call) {
         String pid = call.getString("pid");
-        Log.i("plugin connect", pid);
         Optional<ChScanResult> deviceToConnect = deviceList.stream().filter(item -> item.pid.equals(pid)).findFirst();
         if (deviceToConnect.isPresent()) {
-            Log.i("plugin connect found", pid);
             ChSdkManager.getInstance().connect(deviceToConnect.get());
             if (ChSdkManager.getInstance().isConnected(deviceToConnect.get().type)) {
                 ChSdkManager.getInstance().disConnect(deviceToConnect.get());
@@ -162,11 +206,19 @@ public class EcgPlugin extends Plugin {
     @PluginMethod()
     public void startMonitor(PluginCall call) {
         String pid = call.getString("pid");
-        Log.i("plugin monitor", pid);
         Optional<ChScanResult> deviceToConnect = deviceList.stream().filter(item -> item.pid.equals(pid)).findFirst();
         if (deviceToConnect.isPresent()) {
-            Log.i("plugin connect monitor", pid);
             ChSdkManager.getInstance().startMonitor(deviceToConnect.get().type);
+        }
+    }
+
+    @PluginMethod()
+    public void stopMonitor(PluginCall call) {
+        String pid = call.getString("pid");
+        Optional<ChScanResult> deviceToConnect = deviceList.stream().filter(item -> item.pid.equals(pid)).findFirst();
+        if (deviceToConnect.isPresent()) {
+            ChSdkManager.getInstance().stopMonitor(deviceToConnect.get().type);
+            ChSdkManager.getInstance().disConnect(deviceToConnect.get());
         }
     }
 
@@ -183,7 +235,6 @@ public class EcgPlugin extends Plugin {
             }
         }
 
-        Log.e("storage path", storagePath);
 
 
         ChSdkManager.getInstance().setFileStoragePath(storagePath);

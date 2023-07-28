@@ -21,6 +21,8 @@ specifiers:
   '@types/react-router-dom': ^5.1.7
   '@typescript-eslint/eslint-plugin': ^5.59.2
   '@typescript-eslint/parser': ^5.59.2
+  dexie: ^3.2.4
+  dexie-react-hooks: ^1.1.6
   eslint: ^8.35.0
   eslint-plugin-react: ^7.32.2
   history: ^4.9.0
@@ -64,6 +66,8 @@ dependencies:
   '@types/react-dom': registry.npmmirror.com/@types/react-dom/18.2.7
   '@types/react-router': registry.npmmirror.com/@types/react-router/5.1.20
   '@types/react-router-dom': registry.npmmirror.com/@types/react-router-dom/5.3.3
+  dexie: registry.npmmirror.com/dexie/3.2.4
+  dexie-react-hooks: registry.npmmirror.com/dexie-react-hooks/1.1.6_8a248d6b5754936fea760154c98362b4
   history: registry.npmmirror.com/history/4.10.1
   ionicons: registry.npmmirror.com/ionicons/7.1.2
   localforage: registry.npmmirror.com/localforage/1.10.0
@@ -5700,6 +5704,28 @@ packages:
     dependencies:
       address: registry.npmmirror.com/address/1.2.2
       debug: registry.npmmirror.com/debug/2.6.9
+    dev: false
+
+  registry.npmmirror.com/dexie-react-hooks/1.1.6_8a248d6b5754936fea760154c98362b4:
+    resolution: {integrity: sha512-xSblWtmPwhafWNWMECsW7zMMmBu8goH3QqTxEfwBNoNG1mgsM0oFclippev7ss9HhKICqBwTjgqpscci5Ed4mA==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/dexie-react-hooks/-/dexie-react-hooks-1.1.6.tgz}
+    id: registry.npmmirror.com/dexie-react-hooks/1.1.6
+    name: dexie-react-hooks
+    version: 1.1.6
+    peerDependencies:
+      '@types/react': '>=16'
+      dexie: ^3.2 || ^4.0.1-alpha
+      react: '>=16'
+    dependencies:
+      '@types/react': registry.npmmirror.com/@types/react/18.2.15
+      dexie: registry.npmmirror.com/dexie/3.2.4
+      react: registry.npmmirror.com/react/18.2.0
+    dev: false
+
+  registry.npmmirror.com/dexie/3.2.4:
+    resolution: {integrity: sha512-VKoTQRSv7+RnffpOJ3Dh6ozknBqzWw/F3iqMdsZg958R0AS8AnY9x9d1lbwENr0gzeGJHXKcGhAMRaqys6SxqA==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/dexie/-/dexie-3.2.4.tgz}
+    name: dexie
+    version: 3.2.4
+    engines: {node: '>=6.0'}
     dev: false
 
   registry.npmmirror.com/didyoumean/1.2.2:

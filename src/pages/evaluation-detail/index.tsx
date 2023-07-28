@@ -3,6 +3,57 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import './index.css';
 import { IonPage } from '@ionic/react';
 
+const BLANK_QUESTIONS = [
+  {
+    answer: [
+      {
+        answerGroupCode: 'LES004',
+        name: '3个月内',
+        id: 12,
+        uuid: '0c19756e-6cdb-4209-b92a-9272444a3f1b',
+      },
+      {
+        answerGroupCode: 'LES004',
+        name: '半年内',
+        id: 15,
+        uuid: '0c19756e-6cdb-4209-b92a-9272444a3f3c',
+      },
+      {
+        answerGroupCode: 'LES004',
+        name: '1年内',
+        id: 14,
+        uuid: '0c19756e-6cdb-4209-b92a-9272444a3f3b',
+      },
+      {
+        answerGroupCode: 'LES004',
+        name: '1年以上',
+        id: 13,
+        uuid: '0c19756e-6cdb-4209-b92a-9272444a3f2b',
+      },
+    ],
+    answerGroupCode: 'LES004',
+    name: '离婚影响持续时间',
+    questionImg: null,
+    type: 1,
+    id: 68,
+  },
+  {
+    answer: [
+      {
+        answerGroupCode: 'INPUTANSWER1',
+        name: '填空A',
+        id: 20,
+        uuid: '9c4e48d0-75c1-482b-8dc8-d6e6159da9c1',
+      },
+    ],
+    answerGroupCode: 'INPUTANSWER1',
+    name: '填空测试题1',
+    questionImg: null,
+    type: 3,
+    id: 83,
+  },
+];
+
 const TEMP_QUESTIONS = [
   {
     answer: [
@@ -2580,21 +2631,23 @@ function EvaluationDetail() {
   const skipRule = useMemo(() => {
     const rawRules = tempSkipRule.split('|');
     if (!questions.length) return [];
-    const finalRules = rawRules.map((raw) => {
-      const RE = /(?<when>\d+)-(?<select>[A-Za-z])-(?<to>\d+)/;
-      const { when, select, to } = RE.exec(raw)?.groups ?? {};
-      console.log({ when, select, to });
-      const selectIdx = select.toUpperCase().charCodeAt(0) - 65;
-      console.log('cur question', questions[Number(when) - 1]);
-      const rule = {
-        whenIdx: Number(when) - 1, // 改成正常的 idx
-        selectIdx, // A to 0
-        select: questions[Number(when) - 1].answer[selectIdx]?.id,
-        toIdx: Number(to) - 1,
-      };
-      return rule;
-    });
-    return finalRules;
+    try {
+      const finalRules = rawRules.map((raw) => {
+        const RE = /(?<when>\d+)-(?<select>[A-Za-z])-(?<to>\d+)/;
+        const { when, select, to } = RE.exec(raw)?.groups ?? {};
+        const selectIdx = select.toUpperCase().charCodeAt(0) - 65;
+        const rule = {
+          whenIdx: Number(when) - 1, // 改成正常的 idx
+          selectIdx, // A to 0
+          select: questions[Number(when) - 1].answer[selectIdx]?.id,
+          toIdx: Number(to) - 1,
+        };
+        return rule;
+      });
+      return finalRules;
+    } catch (e) {
+      return [];
+    }
   }, [tempSkipRule, questions]);
 
   const skipedQuestions = useMemo(() => {
@@ -2616,10 +2669,8 @@ function EvaluationDetail() {
     return finalQuestions;
   }, [questions, skipRule, answerMap]);
 
-  console.log('skip questions', skipedQuestions);
-  console.log('skip rule', skipRule);
   useEffect(() => {
-    setQuestions(TEMP_QUESTIONS);
+    setQuestions(BLANK_QUESTIONS);
   }, []);
 
   const renderSingleSelect = (question: any) =>
@@ -2674,6 +2725,17 @@ function EvaluationDetail() {
       </div>
     ));
 
+  const renderBlank = (question: any) => (
+    <div>
+      <input
+        className="question-item-input"
+        value={String(answerMap[question.id] ?? '')}
+        onChange={(e) =>
+          setAnswerMap((am) => ({ ...am, [question.id]: e.target.value }))
+        }
+      />
+    </div>
+  );
   return (
     <IonPage>
       <div className="progress-bar" ref={barRef}></div>
@@ -2686,10 +2748,9 @@ function EvaluationDetail() {
             ((e.target as any).scrollHeight - window.innerHeight);
           const vh = Math.round(progress * 100);
           barRef.current && (barRef.current.style.height = `${vh}vh`);
-          console.log(progress);
         }}
       >
-        {skipedQuestions.map((question, idx) => (
+        {skipedQuestions.map((question, idx, arr) => (
           <div
             className="detail-card-container"
             key={question.id}
@@ -2704,10 +2765,18 @@ function EvaluationDetail() {
                 renderSingleSelect(question)}
               {question.type === QuestionType.Multiple &&
                 renderMultiSelect(question)}
+              {question.type === QuestionType.Blank && renderBlank(question)}
               <div className="question-spacer"></div>
               <div
                 className="next-question"
                 onClick={() => {
+                  // check first
+                  console.log(question);
+                  console.log('answer map', answerMap);
+                  if (answerMap[question.id] === undefined) {
+                    alert('请先作答此题目。');
+                    return;
+                  }
                   const nextId = `#question-${idx + 1}`;
                   const nextBox = document
                     ?.querySelector(nextId)
@@ -2721,7 +2790,7 @@ function EvaluationDetail() {
                   });
                 }}
               >
-                下一题
+                {idx === arr.length - 1 ? '提交问卷' : '下一题'}
               </div>
             </div>
           </div>

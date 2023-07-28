@@ -12,6 +12,8 @@ import './Home.css';
 import { codeToMessage } from '../constants/ecg';
 import Heart from '../components/Heart';
 
+import localforage from 'localforage';
+
 type Device = { devices: { pid: string; mac: string; name: string }[] };
 
 type EcgPlugin = {
@@ -34,16 +36,39 @@ type EcgPlugin = {
     eventName: 'heartRate',
     listener: (data: { heartRate: number }) => void
   ): void;
+  addListener(
+    eventName: 'ecgResult',
+    listener: (data: {
+      time: number;
+      qrsIndex: number;
+      qrsDelay: number;
+      beatType: number;
+      rrInterval: number;
+      heartRate: number;
+      morphType: number;
+      morphId: number;
+      morphData: number[];
+      abnormalbeat: number[];
+    }) => void
+  ): void;
 };
 
 let pid = '';
 
+(window as any).local = localforage;
+
 const EcgPlugin = registerPlugin<EcgPlugin>('Ecg');
+
+const intervalList: number[] = [];
+const beatTypeList: number[] = [];
+
+const ecgResultList: any[] = [];
 
 const Home: React.FC = () => {
   const [ecgData, setEcgData] = useState<number[]>([]);
+  const [count, setCount] = useState(0);
 
-  console.log('ecg data', ecgData);
+  // console.log('ecg data', ecgData);
   return (
     <IonPage>
       <IonHeader>
@@ -65,25 +90,31 @@ const Home: React.FC = () => {
               pid = data.devices[0].pid;
               EcgPlugin.connect({ pid: data.devices[0].pid });
             });
-            EcgPlugin.addListener('ecgRawMessage', (data) => {
-              console.log(
-                'Raw message',
-                codeToMessage[data.what as unknown as any],
-                data.what,
-                data.arg1,
-                data.arg2
-              );
+            // EcgPlugin.addListener('ecgRawMessage', (data) => {
+
+            // });
+            // EcgPlugin.addListener('ecgRawData', (data) => {
+            //   // console.log('Raw data', JSON.stringify(data, null, 2));
+            //   // setEcgData((ecg) => {
+            //   //   const arr = [...ecg, ...data.data];
+            //   //   return arr.slice(Math.max(0, arr.length - 2000), arr.length);
+            //   // });
+            // });
+
+            EcgPlugin.addListener('ecgResult', (data) => {
+              // console.log('ecg result 心脏跳动', data);
+              intervalList.push(data.rrInterval);
+              beatTypeList.push(data.beatType);
+              ecgResultList.push(data);
+
+              console.log('ecg result list', data);
+              localforage.setItem('ecgResult', ecgResultList);
+              setCount(ecgResultList.length);
             });
-            EcgPlugin.addListener('ecgRawData', (data) => {
-              // console.log('Raw data', JSON.stringify(data, null, 2));
-              setEcgData((ecg) => {
-                const arr = [...ecg, ...data.data];
-                return arr.slice(Math.max(0, arr.length - 2000), arr.length);
-              });
-            });
+
             EcgPlugin.startScan({ time: 30000 });
             EcgPlugin.addListener('heartRate', (data) => {
-              console.log('❤️ heart reate', data.heartRate);
+              // console.log('❤️ heart reate', data.heartRate);
             });
           }}
         >
@@ -95,18 +126,8 @@ const Home: React.FC = () => {
             EcgPlugin.startMonitor({ pid });
           }}
         >
-          开始获取数据
+          开始获取数据 {count}
         </h2>
-        <svg width="800" height="400">
-          {/* 绘制心电图线条 */}
-          <path
-            d={`M0 200 ${ecgData
-              .map((d, i) => `L${i * 2} ${200 - d}`)
-              .join(' ')}`}
-            fill="none"
-            stroke="blue"
-          />
-        </svg>
         <Heart />
       </IonContent>
     </IonPage>

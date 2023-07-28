@@ -31,6 +31,7 @@ public class MainActivity extends BridgeActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         registerPlugin(EcgPlugin.class);
+        registerPlugin(EcgPlugin.class);
         super.onCreate(savedInstanceState);
 
 //        Handler mHandler = new Handler() {
