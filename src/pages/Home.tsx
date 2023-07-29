@@ -13,6 +13,7 @@ import { codeToMessage } from '../constants/ecg';
 import Heart from '../components/Heart';
 
 import localforage from 'localforage';
+import { useEffect } from 'react';
 
 type Device = { devices: { pid: string; mac: string; name: string }[] };
 

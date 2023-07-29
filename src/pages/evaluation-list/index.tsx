@@ -3,9 +3,19 @@ import localforage from 'localforage';
 
 import './index.css';
 import { useHistory } from 'react-router';
-import { IonPage } from '@ionic/react';
+import {
+  IonActionSheet,
+  IonLoading,
+  IonPage,
+  useIonViewDidLeave,
+} from '@ionic/react';
 import { db } from '../../db';
 import { EcgDeviceContext } from '../../tools/ecg-plugin';
+import { Html5QrcodeScanner, Html5Qrcode } from 'html5-qrcode';
+import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
+import base64ToFile from '../../tools/base64ToFile';
+import { getList } from '../../api';
+import useEvaList from '../../api/useEvaList';
 
 type Evaluation = {
   scaleName: string;
@@ -27,69 +37,93 @@ function EvaluationList() {
     deviceState,
     currentDeviceId,
     stopMonitor,
+    cancelMonitor,
   } = useContext(EcgDeviceContext);
 
-  useEffect(() => {
-    const testEvaluations = [
-      {
-        scaleName: '生活事件量表（LES）',
-        uuid: 'f54d554a-f7b1-43ee-83a5-7b833bea8941',
-        createdAt: '2023-07-15T07:41:48.431Z',
-        isTest: false,
-        releaseType: 2,
-        effectiveStartTime: '2023-07-14T16:00:00.000Z',
-        effectiveEndTime: '2023-07-17T16:00:00.000Z',
-        isEnable: true,
-      },
-      {
-        scaleName: '测试多选量表',
-        uuid: '7b7ee3ee-f836-441e-b0f3-aaf64cfbd269',
-        createdAt: '2023-07-16T07:47:14.345Z',
-        isTest: true,
-        releaseType: 2,
-        effectiveStartTime: '2023-07-15T16:00:00.544Z',
-        effectiveEndTime: '2023-07-30T16:00:00.000Z',
-        isEnable: true,
-      },
-      {
-        scaleName: '测试填空量表',
-        uuid: '8c2661ab-8927-4ae6-a4f0-daa489655e11',
-        createdAt: '2023-07-16T07:47:39.484Z',
-        isTest: false,
-        releaseType: 2,
-        effectiveStartTime: '2023-07-15T16:00:00.317Z',
-        effectiveEndTime: '2023-07-30T16:00:00.000Z',
-        isEnable: true,
-      },
-    ];
-    setEvalutions(testEvaluations);
-    localforage.setItem('evaluations', testEvaluations);
-    localforage.getItem('evaluations').then((res) => {
-      console.log('result', res);
-    });
+  const [connecting, setConnecting] = useState(false);
 
-    db.friends.add({
-      name: 'John',
-      age: { req: 'nono', what: { a: 1 } },
-    } as any);
-    const friends = db.friends
-      .where({ name: 'John' })
-      .toArray()
-      .then((fr) => {
-        console.log('friends', fr);
-      });
+  const [opingEva, setOpingEva] = useState('');
+
+  const list = useEvaList();
+
+  useEffect(() => {
+    if (!localStorage.getItem('endpoint')) {
+      history.push('/settings');
+    }
   }, []);
   return (
     <IonPage>
+      <IonActionSheet
+        header="是否连接心电仪测试"
+        mode="ios"
+        isOpen={Boolean(opingEva)}
+        onDidDismiss={() => {
+          setOpingEva('');
+        }}
+        buttons={[
+          {
+            text: '否',
+            role: 'destructive',
+            data: {
+              action: 'withoutEcg',
+            },
+            handler: () => {
+              history.push(`/eva-detail?uuid=${opingEva}`);
+            },
+          },
+          {
+            text: '是',
+            data: {
+              action: 'withEcg',
+            },
+            handler: async () => {
+              // 连接心电仪，展示个loading界面
+              setConnecting(true);
+              const timer = setTimeout(() => {
+                cancelMonitor();
+                alert('连接失败，请重启APP');
+                setConnecting(false);
+              }, 30000);
+              try {
+                const result = await connectToDevice();
+                if (result) {
+                  history.push(`/eva-detail?uuid=${opingEva}`);
+                  setConnecting(false);
+                  clearTimeout(timer);
+                }
+              } catch (e) {
+                cancelMonitor();
+                alert('连接失败，请重启APP');
+                setConnecting(false);
+              }
+            },
+          },
+        ]}
+      ></IonActionSheet>
+      <IonLoading
+        mode="ios"
+        message="正在连接设备，请确保设备处于打开状态..."
+        isOpen={connecting}
+      ></IonLoading>
       <div className="list">
-        <div className="list-title">🌞 欢迎您，user22</div>
+        <div className="list-title">
+          <span>🌞 欢迎您，user22</span>
+          <span
+            onClick={() => {
+              history.push('/settings');
+            }}
+          >
+            ⚙️
+          </span>
+        </div>
+        {/* <div id="reader" style={{ width: 600, display: 'none' }}></div> */}
         <div
           className="list-subtitle"
-          onClick={() => {
+          onClick={async () => {
             if (deviceState === 'offline') connectToDevice();
             if (deviceState === 'online') {
-              const result = stopMonitor();
-              alert(JSON.stringify(result));
+              const result = await stopMonitor();
+              console.log('this is result', result.ecgRawDatas, result);
             }
           }}
         >
@@ -100,12 +134,13 @@ function EvaluationList() {
             {msg}
           </div>
         ))}
-        {evaluations.map((evaluation) => (
+        {list.map((evaluation) => (
           <div
             className="list-card"
             key={evaluation.uuid}
             onClick={() => {
-              history.push('/eva-detail');
+              setOpingEva(evaluation.uuid ?? '');
+              // history.push('/eva-detail');
             }}
           >
             <div>{evaluation.scaleName}</div>

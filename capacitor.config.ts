@@ -5,7 +5,7 @@ const config: CapacitorConfig = {
   appName: 'ecg-scale-app',
   webDir: 'build',
   server: {
-    androidScheme: 'https'
+    androidScheme: 'http'
   },
   android: {
   

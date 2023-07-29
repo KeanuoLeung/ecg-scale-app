@@ -8,18 +8,58 @@ export type DeviceState = 'offline' | 'online';
 export type EcgDevice = {
   deviceState: DeviceState;
   currentDeviceId: string;
-  connectToDevice: () => void;
+  connectToDevice: () => Promise<boolean>;
   debugMessages: string[];
-  stopMonitor: () => { ecgRawDatas: any[]; ecgResults: any[] };
+  stopMonitor: () => Promise<{
+    ecgRawDatas: EcgRawData[];
+    ecgResults: EcgResult[];
+    hrvReport?: Report;
+  }>;
+  cancelMonitor: () => void;
 };
+
+export type EcgRawData = { time: number; isLost: boolean; data: number[] };
+
+export type EcgResult = {
+  time: number;
+  qrsIndex: number;
+  qrsDelay: number;
+  beatType: number;
+  rrInterval: number;
+  heartRate: number;
+  morphType: number;
+  morphId: number;
+};
+
+export interface Report {
+  mean: number;
+  sdnn: number;
+  sdann: number;
+  sdnni: number;
+  rmsssd: number;
+  pnn50: number;
+  triangularIndex: number;
+  tp: number;
+  vlf: number;
+  lf: number;
+  hf: number;
+  lfNorm: number;
+  hfNorm: number;
+  ratioLHF: number;
+  powerData: number[];
+  intervalStatistics: number[];
+}
 
 export const EcgDeviceContext = createContext<EcgDevice>({
   deviceState: 'offline',
   currentDeviceId: '',
-  connectToDevice: () => void 0,
-  stopMonitor: () => {
-    return { ecgRawDatas: [], ecgResults: [] };
+  connectToDevice: async () => {
+    return false;
   },
+  stopMonitor: async () => {
+    return { ecgRawDatas: [], ecgResults: [], hrvReport: undefined };
+  },
+  cancelMonitor: () => void 0,
   debugMessages: [],
 });
 
@@ -28,6 +68,10 @@ type EcgPlugin = {
   connect: (props: { pid: string }) => void;
   startMonitor: (props: { pid: string }) => void;
   stopMonitor: (props: { pid: string }) => void;
+  analysisHrv: (props: {
+    intervalList: number[];
+    beatList: number[];
+  }) => Promise<{ data: Report }>;
   addListener(
     eventName: 'ecgDeviceFound',
     listener: (device: Device) => void
@@ -38,7 +82,7 @@ type EcgPlugin = {
   ): void;
   addListener(
     eventName: 'ecgRawData',
-    listener: (data: { time: number; isLost: number; data: number[] }) => void
+    listener: (data: EcgRawData) => void
   ): void;
   addListener(
     eventName: 'heartRate',
@@ -50,18 +94,7 @@ type EcgPlugin = {
   ): void;
   addListener(
     eventName: 'ecgResult',
-    listener: (data: {
-      time: number;
-      qrsIndex: number;
-      qrsDelay: number;
-      beatType: number;
-      rrInterval: number;
-      heartRate: number;
-      morphType: number;
-      morphId: number;
-      morphData: number[];
-      abnormalbeat: number[];
-    }) => void
+    listener: (data: EcgResult) => void
   ): void;
   removeAllListeners(): void;
 };

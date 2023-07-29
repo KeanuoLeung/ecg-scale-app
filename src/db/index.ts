@@ -1,18 +1,23 @@
 import Dexie, { Table } from 'dexie';
 
-export interface Friend {
+export interface Report {
   id?: number;
-  name: string;
-  age: number;
+  uuid?: string;
+  scaleId: number;
+  userId: number;
+  evaReport: any;
+  originalEcgData?: any;
+  chDetectionResult?: any;
 }
 
 export class DB extends Dexie {
-  friends!: Table<Friend>;
+  reports!: Table<Report>;
 
   constructor() {
-    super('db');
+    super('report');
     this.version(1).stores({
-      friends: '++id, name, age',
+      reports:
+        '++id, uuid, scaleId, userId, evaReport, originalEcgData, chDetectionResult',
     });
   }
 }

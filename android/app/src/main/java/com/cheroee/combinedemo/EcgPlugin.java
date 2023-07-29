@@ -22,6 +22,10 @@ import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.CapacitorPlugin;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -49,6 +53,7 @@ public class EcgPlugin extends Plugin {
 
         return sb.toString();
     }
+
     @Override
     public void load() {
         super.load();
@@ -60,6 +65,8 @@ public class EcgPlugin extends Plugin {
         };
         ChSdkManager.getInstance().init(mHandler, getActivity().getApplicationContext());
         checkLicense();
+
+
 //
 //        // SD卡正常挂载（可读写）
 //        if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())) {
@@ -73,12 +80,12 @@ public class EcgPlugin extends Plugin {
     }
 
     private void onReceviceEvent(Message msg) {
+        Log.e("EVENT", String.format("%d", msg.what));
         JSObject raw = new JSObject();
         raw.put("what", msg.what);
         raw.put("arg1", msg.arg1);
         raw.put("arg2", msg.arg2);
         // notifyListeners("ecgRawMessage", raw);
-        showToast("响应时间" + String.format("%d", msg.what));
         switch (msg.what) {
             case ChMsg.MSG_SCAN_START:
                 // showToast("扫描开始");
@@ -87,6 +94,7 @@ public class EcgPlugin extends Plugin {
                 onScanResult((ChScanResult) msg.obj);
                 break;
             case ChMsg.MSG_SCAN_FAIL:
+                Log.e("扫描失败", String.format("%d", msg.arg1));
                 break;
             case ChMsg.MSG_ECG_SMOOTH_ECG:
                 onRaw(msg);
@@ -121,7 +129,7 @@ public class EcgPlugin extends Plugin {
             smoothData.put("time", data.time);
             smoothData.put("isLost", data.isLost);
             JSArray dataArr = new JSArray();
-            for (int v: data.values) {
+            for (int v : data.values) {
                 dataArr.put(v);
             }
             smoothData.put("data", dataArr);
@@ -129,6 +137,7 @@ public class EcgPlugin extends Plugin {
         }
 
     }
+
 
     private void onEcgResult(Message msg) {
         ChDetectionResult result = (ChDetectionResult) msg.obj;
@@ -144,11 +153,12 @@ public class EcgPlugin extends Plugin {
 
         notifyListeners("ecgResult", ecg);
     }
+
     private void onScanResult(ChScanResult result) {
         showToast("扫描到了！");
 
         ChScanResult target = null;
-        for (ChScanResult obj: deviceList) {
+        for (ChScanResult obj : deviceList) {
             if (result.pid.equals(obj.pid)) {
                 target = obj;
                 break;
@@ -158,7 +168,7 @@ public class EcgPlugin extends Plugin {
             deviceList.add(result);
         }
         JSArray notifyList = new JSArray();
-        for (ChScanResult obj: deviceList) {
+        for (ChScanResult obj : deviceList) {
             JSObject device = new JSObject();
             device.put("pid", obj.pid);
             device.put("mac", obj.mac);
@@ -182,6 +192,62 @@ public class EcgPlugin extends Plugin {
         deviceList = new ArrayList<>();
         int time = call.getInt("time");
         ChSdkManager.getInstance().startScan(-1);
+    }
+
+    @PluginMethod()
+    public void analysisHrv(PluginCall call) throws JSONException {
+        JSONArray intervalList = call.getArray("intervalList");
+        short[] _intervalList = new short[intervalList.length()];
+        for (int i = 0; i < intervalList.length(); i++) {
+            _intervalList[i] = (short) intervalList.getInt(i);
+        }
+
+        JSONArray beatList = call.getArray("beatList");
+        int[] _beatList = new int[beatList.length()];
+        for (int i = 0; i < beatList.length(); i++) {
+            _beatList[i] = beatList.getInt(i);
+        }
+
+        // short[] intervalList = {134,132,132,133,132,134,135,132,131,130,129,127,127,125,126,124,125,127,128,131,133,139,142,141,135,133,133,134,134,133,133,132,132,131,132,132,132,131,131,132,132,131,133,132,132,131,133,132,132,130,130,130,128,126,127,125,126,126,124,124,125,125,123,125,125,125,125,126,126,125,126,127,125,126,126,126,127,124,126,126,126,125,125,126,126,125,126,126,124,124,124,126,126,126,127,126,128,127,128,126,126,127,128,126,125,124,125,125,126,125,127,127,129,129,129,134,132,132,133,132,134,135,132,131,130,129,127,127,125,126,124,125,127,128,131,133,139,142,141,135,133,133,134,134,133,133,132,132,131,132,132,132,131,131,132,132,131,133,132,132,131,133,132,132,130,130,130,128,126,127,125,126,126,124,124,125,125,123,125,125,125,125,126,126,125,126,127,125,126,126,126,127,124,126,126,126,125,125,126,126,125,126,126,124,124,124,126,126,126,127,126,128,127,128,126,126,127,128,126,125,124,125,125,126,125,127,127,129,129,129,134,132,132,133,132,134,135,132,131,130,129,127,127,125,126,124,125,127,128,131,133,139,142,141,135,133,133,134,134,133,133,132,132,131,132,132,132,131,131,132,132,131,133,132,132,131,133,132,132,130,130,130,128,126,127,125,126,126,124,124,125,125,123,125,125,125,125,126,126,125,126,127,125,126,126,126,127,124,126,126,126,125,125,126,126,125,126,126,124,124,124,126,126,126,127,126,128,127,128,126,126,127,128,126,125,124,125,125,126,125,127,127,129,129,129,134,132,132,133,132,134,135,132,131,130,129,127,127,125,126,124,125,127,128,131,133,139,142,141,135,133,133,134,134,133,133,132,132,131,132,132,132,131,131,132,132,131,133,132,132,131,133,132,132,130,130,130,128,126,127,125,126,126,124,124,125,125,123,125,125,125,125,126,126,125,126,127,125,126,126,126,127,124,126,126,126,125,125,126,126,125,126,126,124,124,124,126,126,126,127,126,128,127,128,126,126,127,128,126,125,124,125,125,126,125,127,127,129,129,129,134,132,132,133,132,134,135,132,131,130,129,127,127,125,126,124,125,127,128,131,133,139,142,141,135,133,133,134,134,133,133,132,132,131,132,132,132,131,131,132,132,131,133,132,132,131,133,132,132,130,130,130,128,126,127,125,126,126,124,124,125,125,123,125,125,125,125,126,126,125,126,127,125,126,126,126,127,124,126,126,126,125,125,126,126,125,126,126,124,124,124,126,126,126,127,126,128,127,128,126,126,127,128,126,125,124,125,125,126,125,127,127,129,129,129};
+
+        // int[] beatList = {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
+
+        EcgHrvReport report = ChSdkManager.getInstance().analysisHrv(_intervalList, _beatList);
+
+
+        if (report != null) {
+            JSONObject finalReport = new JSONObject();
+            finalReport.put("mean", report.mean);
+            finalReport.put("sdnn", report.sdnn);
+            finalReport.put("sdann", report.sdann);
+            finalReport.put("sdnni", report.sdnni);
+            finalReport.put("rmsssd", report.rmsssd);
+            finalReport.put("pnn50", report.pnn50);
+            finalReport.put("triangularIndex", report.triangularIndex);
+            finalReport.put("tp", report.tp);
+            finalReport.put("vlf", report.vlf);
+            finalReport.put("lf", report.lf);
+            finalReport.put("hf", report.hf);
+            finalReport.put("lfNorm", report.lfNorm);
+            finalReport.put("hfNorm", report.hfNorm);
+            finalReport.put("ratioLHF", report.ratioLHF);
+            JSONArray powerData = new JSONArray();
+            for(float v: report.powerData) {
+                powerData.put(v);
+            }
+            finalReport.put("powerData", powerData);
+            JSONArray intervalStatistics = new JSONArray();
+            for(float v: report.intervalStatistics) {
+                intervalStatistics.put(v);
+            }
+            finalReport.put("intervalStatistics", intervalStatistics);
+            JSObject result = new JSObject();
+            result.put("data", finalReport);
+            call.resolve(result);
+        } else {
+            Log.e("Report not exist", "haha");
+            call.reject("Report not exist");
+        }
     }
 
     @PluginMethod
@@ -219,6 +285,7 @@ public class EcgPlugin extends Plugin {
         if (deviceToConnect.isPresent()) {
             ChSdkManager.getInstance().stopMonitor(deviceToConnect.get().type);
             ChSdkManager.getInstance().disConnect(deviceToConnect.get());
+            ChSdkManager.getInstance().stopScan();
         }
     }
 
@@ -235,6 +302,7 @@ public class EcgPlugin extends Plugin {
             }
         }
 
+        Log.e("storage path", storagePath);
 
 
         ChSdkManager.getInstance().setFileStoragePath(storagePath);

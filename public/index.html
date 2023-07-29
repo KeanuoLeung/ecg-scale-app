@@ -6,7 +6,6 @@
 
     <base href="/" />
 
-    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
     <meta name="color-scheme" content="light" />
     <meta
       name="viewport"
@@ -30,6 +29,23 @@
     <style>
       .ion-page {
         background-color: #f5f5dc;
+      }
+
+      body.barcode-scanner-active {
+        visibility: hidden;
+        --background: transparent;
+        --ion-background-color: transparent;
+      }
+
+      .barcode-scanner-modal {
+        visibility: visible;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        .barcode-scanner-modal {
+          --background: transparent;
+          --ion-background-color: transparent;
+        }
       }
     </style>
   </head>
