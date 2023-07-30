@@ -7,6 +7,7 @@ import {
   IonActionSheet,
   IonLoading,
   IonPage,
+  useIonViewDidEnter,
   useIonViewDidLeave,
 } from '@ionic/react';
 import { db } from '../../db';
@@ -14,8 +15,15 @@ import { EcgDeviceContext } from '../../tools/ecg-plugin';
 import { Html5QrcodeScanner, Html5Qrcode } from 'html5-qrcode';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import base64ToFile from '../../tools/base64ToFile';
-import { getList } from '../../api';
+import {
+  UserInfo,
+  getList,
+  saveHrvReport,
+  saveOriginalCsv,
+  saveReport,
+} from '../../api';
 import useEvaList from '../../api/useEvaList';
+import { ReleaseType } from '../../constants/type';
 
 type Evaluation = {
   scaleName: string;
@@ -30,6 +38,7 @@ type Evaluation = {
 
 function EvaluationList() {
   const history = useHistory();
+  const [userName, setUserName] = useState('');
   const [evaluations, setEvalutions] = useState<Evaluation[]>([]);
   const {
     connectToDevice,
@@ -40,17 +49,99 @@ function EvaluationList() {
     cancelMonitor,
   } = useContext(EcgDeviceContext);
 
+  const [disabledReports, setDisabledReports] = useState<string[]>([]);
   const [connecting, setConnecting] = useState(false);
 
   const [opingEva, setOpingEva] = useState('');
 
-  const list = useEvaList();
+  const [list, refresh] = useEvaList();
 
   useEffect(() => {
     if (!localStorage.getItem('endpoint')) {
       history.push('/settings');
     }
   }, []);
+
+  const checkDisabled = async () => {
+    const reportsToUpload = await db.reports.toArray();
+    console.log('reportsToUpload', reportsToUpload, list);
+    const result = [];
+    for (const scale of list) {
+      if (
+        scale.releaseType === ReleaseType.SINGLE &&
+        reportsToUpload.some((report) => report.scaleUUId === scale.uuid)
+      ) {
+        result.push(scale.uuid ?? '');
+      }
+    }
+    setDisabledReports(result);
+  };
+
+  useIonViewDidEnter(() => {
+    refresh();
+    checkDisabled();
+  });
+
+  useEffect(() => {
+    checkDisabled();
+  }, [list]);
+
+  useEffect(() => {
+    // 定时同步
+    async function sync() {
+      const reports = (await db.reports.toArray()).filter(
+        (resport) => !resport.synced
+      );
+      for (const report of reports) {
+        const success = await saveReport({
+          QuestionidAndAnsweridInput: report.evaReport,
+          scaleUUid: report.scaleUUId,
+          userId: report.userId,
+          uuid: report.uuid ?? '',
+        });
+        if (success) {
+          report.id && db.reports.update(report.id, { synced: true });
+        }
+        // 心电数据
+        report.originalEcgData &&
+          saveOriginalCsv({
+            time: Date.now(),
+            userId: String(report.userId),
+            scaleId: report.scaleUUId,
+            uuid: report.uuid ?? '',
+            type: 'originalEcgData',
+            value: report.originalEcgData,
+          });
+        // 心率数据
+        report.chDetectionResult &&
+          saveOriginalCsv({
+            time: Date.now(),
+            userId: String(report.userId),
+            scaleId: report.scaleUUId,
+            uuid: report.uuid ?? '',
+            type: 'chDetectionResult',
+            value: report.chDetectionResult,
+          });
+        // report
+        report.hrvReport &&
+          saveHrvReport({
+            ...report.hrvReport,
+            scaleId: -1,
+            uuid: report.uuid ?? '',
+            userId: report.userId,
+          });
+      }
+    }
+    setInterval(() => {
+      sync();
+    }, 10 * 1000);
+
+    localforage.getItem<UserInfo>('user').then((res) => {
+      setUserName(res?.user?.realname ?? '用户');
+    });
+  }, []);
+
+  console.log('disabled reports', disabledReports);
   return (
     <IonPage>
       <IonActionSheet
@@ -107,7 +198,7 @@ function EvaluationList() {
       ></IonLoading>
       <div className="list">
         <div className="list-title">
-          <span>🌞 欢迎您，user22</span>
+          <span>🌞 欢迎您，{userName}</span>
           <span
             onClick={() => {
               history.push('/settings');
@@ -129,16 +220,22 @@ function EvaluationList() {
         >
           请选择量表开始测试 {deviceState} {currentDeviceId}
         </div>
-        {debugMessages.map((msg) => (
+        {/* {debugMessages.map((msg) => (
           <div key={msg} className="list-subtitle">
             {msg}
           </div>
-        ))}
+        ))} */}
         {list.map((evaluation) => (
           <div
-            className="list-card"
+            className={`list-card ${
+              disabledReports.includes(evaluation.uuid ?? '?') && 'disabled'
+            }`}
             key={evaluation.uuid}
             onClick={() => {
+              if (disabledReports.includes(evaluation.uuid ?? '?')) {
+                alert('量表已提交');
+                return;
+              }
               setOpingEva(evaluation.uuid ?? '');
               // history.push('/eva-detail');
             }}

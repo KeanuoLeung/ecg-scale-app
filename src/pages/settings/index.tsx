@@ -12,6 +12,8 @@ import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { Html5Qrcode } from 'html5-qrcode';
 import base64ToFile from '../../tools/base64ToFile';
 import { useHistory } from 'react-router';
+import localforage from 'localforage';
+import { UserInfo } from '../../api';
 
 function Settings() {
   const [url, setUrl] = useState(localStorage.getItem('endpoint') ?? '');
@@ -61,12 +63,13 @@ function Settings() {
           onClick={() => {
             alert(url);
             localStorage.setItem('endpoint', url);
-            const target = localStorage.getItem('userId');
-            if (!target) {
-              history.replace('/login');
-            } else {
-              history.replace('/eva-list');
-            }
+            localforage.getItem<UserInfo>('user').then((res) => {
+              if (!res?.user.id) {
+                location.href = '/login';
+              } else {
+                location.href = '/eva-list';
+              }
+            });
           }}
         >
           保存设置

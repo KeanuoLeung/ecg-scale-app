@@ -1,13 +1,17 @@
 import Dexie, { Table } from 'dexie';
+import { HrvReport } from '../tools/ecg-plugin';
 
 export interface Report {
   id?: number;
   uuid?: string;
-  scaleId: number;
+  scaleUUId: string;
   userId: number;
   evaReport: any;
+  hrvReport?: HrvReport;
   originalEcgData?: any;
   chDetectionResult?: any;
+  timestamp?: number;
+  synced?: boolean;
 }
 
 export class DB extends Dexie {
@@ -15,9 +19,9 @@ export class DB extends Dexie {
 
   constructor() {
     super('report');
-    this.version(1).stores({
+    this.version(2).stores({
       reports:
-        '++id, uuid, scaleId, userId, evaReport, originalEcgData, chDetectionResult',
+        '++id, uuid, scaleUUId, userId, evaReport, originalEcgData, chDetectionResult, hrvReport, timestamp, synced',
     });
   }
 }

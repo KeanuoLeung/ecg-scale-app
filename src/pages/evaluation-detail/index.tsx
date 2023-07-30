@@ -6,12 +6,13 @@ import {
   EcgDeviceContext,
   EcgRawData,
   EcgResult,
-  Report,
+  HrvReport,
 } from '../../tools/ecg-plugin';
 import { useHistory } from 'react-router';
+import { v4 as uuid } from 'uuid';
 import localforage from 'localforage';
 import useEvaList from '../../api/useEvaList';
-import { saveReport } from '../../api';
+import { UserInfo, saveReport } from '../../api';
 import { db } from '../../db';
 import makeArrayCsv from '../../tools/makeArrayCsv';
 
@@ -35,7 +36,7 @@ function EvaluationDetail() {
   >({});
   const barRef = useRef<HTMLDivElement>(null);
   const scaleId = new URLSearchParams(location.search).get('uuid');
-  const evaList = useEvaList();
+  const [evaList] = useEvaList();
   const [skipRuleStr, setSkipRuleStr] = useState('');
   const {
     connectToDevice,
@@ -168,7 +169,6 @@ function EvaluationDetail() {
   useIonViewDidLeave(() => {
     if (deviceState === 'online') {
       cancelMonitor();
-      alert('问卷中止');
     }
   });
 
@@ -216,7 +216,7 @@ function EvaluationDetail() {
   );
 
   const scrollToNext = (idx: number) => {
-    const nextId = `#question-${idx + 1}`;
+    const nextId = `#question-${idx}`;
     const nextBox = document?.querySelector(nextId)?.getBoundingClientRect();
     const con = document.querySelector('#question-con');
     console.log('con con', con, con?.scrollTop, nextBox);
@@ -229,32 +229,32 @@ function EvaluationDetail() {
 
   console.log('real id', id);
 
-  useEffect(() => {
-    setAnswerMap({
-      '84': 21,
-      '85': 22,
-      '86': 23,
-      '87': 22,
-      '88': 21,
-      '89': 22,
-      '90': 23,
-      '91': 21,
-      '92': 22,
-      '93': 24,
-      '94': 21,
-      '95': 22,
-      '96': 23,
-      '97': 24,
-      '98': 22,
-      '99': 21,
-      '100': 22,
-      '101': 21,
-      '102': 22,
-      '103': 24,
-      '104': 22,
-      '105': 21,
-    });
-  }, []);
+  // useEffect(() => {
+  //   setAnswerMap({
+  //     '84': 21,
+  //     '85': 22,
+  //     '86': 23,
+  //     '87': 22,
+  //     '88': 21,
+  //     '89': 22,
+  //     '90': 23,
+  //     '91': 21,
+  //     '92': 22,
+  //     '93': 24,
+  //     '94': 21,
+  //     '95': 22,
+  //     '96': 23,
+  //     '97': 24,
+  //     '98': 22,
+  //     '99': 21,
+  //     '100': 22,
+  //     '101': 21,
+  //     '102': 22,
+  //     '103': 24,
+  //     '104': 22,
+  //     '105': 21,
+  //   });
+  // }, []);
   return (
     <IonPage>
       <div className="progress-bar" ref={barRef}></div>
@@ -299,9 +299,17 @@ function EvaluationDetail() {
                   let result: {
                     ecgRawDatas: EcgRawData[];
                     ecgResults: EcgResult[];
-                    hrvReport?: Report | undefined;
+                    hrvReport?: HrvReport | undefined;
                   } | null = null;
                   if (idx === arr.length - 1) {
+                    const firstNot = skipedQuestions.findIndex(
+                      (question) => !answerMap[question.id]
+                    );
+                    if (firstNot !== -1) {
+                      alert('请作答所有题目');
+                      scrollToNext(firstNot);
+                      return;
+                    }
                     try {
                       if (deviceState === 'online') {
                         result = await stopMonitor();
@@ -325,21 +333,28 @@ function EvaluationDetail() {
                       evaReport: answers,
                       originalEcgData: makeArrayCsv(result?.ecgRawDatas ?? []),
                       chDetectionResult: makeArrayCsv(result?.ecgResults ?? []),
-                    })
+                    });
                     db.reports.add({
-                      uuid: 'test-aa',
-                      scaleId: id,
-                      userId: (await localforage.getItem('userId')) ?? 0,
+                      uuid: uuid(),
+                      scaleUUId: scaleId ?? '',
+                      userId:
+                        Number(
+                          (await localforage.getItem<UserInfo>('user'))?.user
+                            ?.id
+                        ) ?? 0,
                       evaReport: answers,
                       originalEcgData: makeArrayCsv(result?.ecgRawDatas ?? []),
                       chDetectionResult: makeArrayCsv(result?.ecgResults ?? []),
+                      hrvReport: result?.hrvReport,
+                      timestamp: Date.now(),
                     });
+                    history.back();
                     // id &&saveReport({
                     //   QuestionidAndAnsweridInput: answers,
                     //   scaleId: id,
                     // });
                   } else {
-                    scrollToNext(idx);
+                    scrollToNext(idx + 1);
                   }
                 }}
               >

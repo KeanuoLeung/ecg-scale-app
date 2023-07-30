@@ -39,6 +39,8 @@ setupIonicReact();
 
 let ecgRawDatas: EcgRawData[] = demo.ecgRawDatas;
 let ecgResults: EcgResult[] = demo.ecgResults;
+// let ecgRawDatas: EcgRawData[] = [];
+// let ecgResults: EcgResult[] = [];
 
 const App: React.FC = () => {
   const [deviceState, setDeviceState] =

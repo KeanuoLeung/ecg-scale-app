@@ -13,7 +13,7 @@ export type EcgDevice = {
   stopMonitor: () => Promise<{
     ecgRawDatas: EcgRawData[];
     ecgResults: EcgResult[];
-    hrvReport?: Report;
+    hrvReport?: HrvReport;
   }>;
   cancelMonitor: () => void;
 };
@@ -31,7 +31,7 @@ export type EcgResult = {
   morphId: number;
 };
 
-export interface Report {
+export interface HrvReport {
   mean: number;
   sdnn: number;
   sdann: number;
@@ -71,7 +71,7 @@ type EcgPlugin = {
   analysisHrv: (props: {
     intervalList: number[];
     beatList: number[];
-  }) => Promise<{ data: Report }>;
+  }) => Promise<{ data: HrvReport }>;
   addListener(
     eventName: 'ecgDeviceFound',
     listener: (device: Device) => void

@@ -30,8 +30,21 @@ public class MainActivity extends BridgeActivity {
     private static final int CODE_REQUEST_LOCATION_SETTINGS = 102;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        registerPlugin(EcgPlugin.class);
-        registerPlugin(EcgPlugin.class);
+        if (Build.VERSION.SDK_INT >= 23) {
+            //校验是否已具有模糊定位权限
+            if (ContextCompat.checkSelfPermission(MainActivity.this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                    || ContextCompat.checkSelfPermission(MainActivity.this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED
+                    || ContextCompat.checkSelfPermission(MainActivity.this, android.Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(MainActivity.this,
+                        new String[]{android.Manifest.permission.ACCESS_COARSE_LOCATION, android.Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_PHONE_STATE},
+                        CODE_REQUEST_ACCESS_COARSE_LOCATION);
+               showToast("授权后请重启APP");
+            } else {
+                registerPlugin(EcgPlugin.class);
+            }
+        } else {
+            //系统不高于6.0直接执行
+        }
         super.onCreate(savedInstanceState);
 
 //        Handler mHandler = new Handler() {

@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { IonPage } from '@ionic/react';
+import React, { useEffect, useState } from 'react';
+import { IonPage, useIonViewDidEnter } from '@ionic/react';
 
 import {
   BarcodeScanner,
@@ -12,11 +12,20 @@ import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { Html5Qrcode } from 'html5-qrcode';
 import base64ToFile from '../../tools/base64ToFile';
 import { useHistory } from 'react-router';
+import { UserInfo, login } from '../../api';
+import localforage from 'localforage';
+import { LoginMutation } from '../../__generated__/graphql';
 
 function Login() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const history = useHistory();
+
+  useIonViewDidEnter(() => {
+    if (!localStorage.getItem('endpoint')) {
+      history.replace('/settings');
+    }
+  });
 
   return (
     <IonPage>
@@ -39,7 +48,12 @@ function Login() {
         <div
           className="save-button"
           style={{ marginTop: 40 }}
-          //  onClick={() => {}}
+          onClick={async () => {
+            console.log(username, password);
+            const result = await login(username, password);
+            localforage.setItem('user', result);
+            history.replace('/eva-list');
+          }}
         >
           登录
         </div>

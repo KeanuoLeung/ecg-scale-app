@@ -7,9 +7,7 @@ import {
 import localforage from 'localforage';
 
 const client = new ApolloClient({
-  uri: `${
-    localStorage.getItem('endpoint') ?? ''
-  }/graphql`,
+  uri: `${localStorage.getItem('endpoint') ?? ''}/graphql`,
   cache: new InMemoryCache(),
 });
 

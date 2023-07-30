@@ -25,6 +25,7 @@ specifiers:
   '@types/react-dom': ^18.0.6
   '@types/react-router': ^5.1.11
   '@types/react-router-dom': ^5.1.7
+  '@types/uuid': ^9.0.2
   '@typescript-eslint/eslint-plugin': ^5.59.2
   '@typescript-eslint/parser': ^5.59.2
   dexie: ^3.2.4
@@ -42,6 +43,7 @@ specifiers:
   react-router-dom: ^5.2.0
   react-scripts: ^5.0.0
   typescript: ^4.1.3
+  uuid: ^9.0.0
   web-vitals: ^0.2.4
   workbox-background-sync: ^5.1.4
   workbox-broadcast-update: ^5.1.4
@@ -91,6 +93,7 @@ dependencies:
   react-router-dom: registry.npmmirror.com/react-router-dom/5.3.4_react@18.2.0
   react-scripts: registry.npmmirror.com/react-scripts/5.0.1_react@18.2.0+typescript@4.9.5
   typescript: registry.npmmirror.com/typescript/4.9.5
+  uuid: 9.0.0
   web-vitals: registry.npmmirror.com/web-vitals/0.2.4
   workbox-background-sync: registry.npmmirror.com/workbox-background-sync/5.1.4
   workbox-broadcast-update: registry.npmmirror.com/workbox-broadcast-update/5.1.4
@@ -109,6 +112,7 @@ devDependencies:
   '@capacitor/cli': registry.npmmirror.com/@capacitor/cli/5.1.0
   '@graphql-codegen/cli': 5.0.0_bfb24bf8388a2da110286ee94080c114
   '@graphql-codegen/client-preset': 4.1.0_graphql@16.7.1
+  '@types/uuid': 9.0.2
   '@typescript-eslint/eslint-plugin': registry.npmmirror.com/@typescript-eslint/eslint-plugin/5.62.0_813dde211e9fed146d00a3a5a279daee
   '@typescript-eslint/parser': registry.npmmirror.com/@typescript-eslint/parser/5.62.0_eslint@8.45.0+typescript@4.9.5
   eslint: registry.npmmirror.com/eslint/8.45.0
@@ -1446,6 +1450,10 @@ packages:
 
   /@types/node/12.20.55:
     resolution: {integrity: sha512-J8xLz7q2OFulZ2cyGTLE1TbbZcjpno7FaN6zdJNrgAdrJ+DZzh/uFR6YrTb4C+nXakvud8Q4+rbhoIWlYQbUFQ==}
+    dev: true
+
+  /@types/uuid/9.0.2:
+    resolution: {integrity: sha512-kNnC1GFBLuhImSnV7w4njQkUiJi0ZXUycu1rUaouPqiKlXkh77JKgdRnTAp1x5eBwcIwbtI+3otwzuIDEuDoxQ==}
     dev: true
 
   /@types/ws/8.5.5:
@@ -3194,6 +3202,16 @@ packages:
   /util-deprecate/1.0.2:
     resolution: {integrity: sha1-RQ1Nyfpw3nMnYvvS1KKJgUGaDM8=}
     dev: true
+
+  /uuid/8.3.2:
+    resolution: {integrity: sha512-+NYs2QeMWy+GWFOEm9xnn6HCDp0l7QBD7ml8zLUmJ+93Q5NF0NocErnwkTkXVFNiX3/fpC6afS8Dhb/gz7R7eg==}
+    hasBin: true
+    dev: false
+
+  /uuid/9.0.0:
+    resolution: {integrity: sha512-MXcSTerfPa4uqyzStbRoTgt5XIe3x5+42+q1sDuy3R5MDk66URdLMOZe5aPX/SQd+kuYAh0FdP/pO28IkQyTeg==}
+    hasBin: true
+    dev: false
 
   /value-or-promise/1.0.12:
     resolution: {integrity: sha512-Z6Uz+TYwEqE7ZN50gwn+1LCVo9ZVrpxRPOhOLnncYkY1ZzOYtrX8Fwf/rFktZ8R5mJms6EZf5TqNOMeZmnPq9Q==}
@@ -15017,7 +15035,7 @@ packages:
     version: 0.3.24
     dependencies:
       faye-websocket: registry.npmmirror.com/faye-websocket/0.11.4
-      uuid: registry.npmmirror.com/uuid/8.3.2
+      uuid: 8.3.2
       websocket-driver: registry.npmmirror.com/websocket-driver/0.7.4
     dev: false
 
@@ -16029,13 +16047,6 @@ packages:
     name: utils-merge
     version: 1.0.1
     engines: {node: '>= 0.4.0'}
-    dev: false
-
-  registry.npmmirror.com/uuid/8.3.2:
-    resolution: {integrity: sha512-+NYs2QeMWy+GWFOEm9xnn6HCDp0l7QBD7ml8zLUmJ+93Q5NF0NocErnwkTkXVFNiX3/fpC6afS8Dhb/gz7R7eg==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/uuid/-/uuid-8.3.2.tgz}
-    name: uuid
-    version: 8.3.2
-    hasBin: true
     dev: false
 
   registry.npmmirror.com/v8-to-istanbul/8.1.1:

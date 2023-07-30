@@ -1,5 +1,7 @@
 import { gql } from '../__generated__';
 import {
+  EcgHrvReportInput,
+  LoginMutation,
   ReportQuestionChooseUseQuestionidAndAnsweridInput,
   ScaleEvaluation,
 } from '../__generated__/graphql';
@@ -25,7 +27,6 @@ const GET_LIST = gql(/* GraphQL */ `
         isEnable
         skipRule
         isSkip
-        id
       }
     }
   }
@@ -62,6 +63,26 @@ const SAVE_REPORT = gql(/* GraphQL */ `
   }
 `);
 
+const SAVE_HRV_REPORT = gql(/* GraphQL */ `
+  mutation saveHrvReport($report: EcgHrvReportInput!) {
+    saveEcgHrvReport(ecgHrvReportInput: $report)
+  }
+`);
+
+const LOGIN = gql(/* GraphQL */ `
+  mutation login($username: String!, $password: String!) {
+    login(data: { username: $username, password: $password }) {
+      accessToken
+      user {
+        id
+        isAdmin
+        username
+        realname
+      }
+    }
+  }
+`);
+
 async function getList(userId: number) {
   const result = await client.query({
     query: GET_LIST,
@@ -90,4 +111,52 @@ async function saveReport(
   return result.data?.saveReportQuestionChooseUseQuestionidAndAnswerid;
 }
 
-export { getList, getScaleDetail, saveReport };
+async function saveHrvReport(report: EcgHrvReportInput) {
+  const result = await client.mutate({
+    mutation: SAVE_HRV_REPORT,
+    variables: { report },
+  });
+  return result.data?.saveEcgHrvReport;
+}
+
+async function login(username: string, password: string) {
+  const result = await client.mutate({
+    mutation: LOGIN,
+    variables: { username, password },
+  });
+  return result?.data?.login;
+}
+
+async function saveOriginalCsv(props: {
+  time: number;
+  userId: string;
+  scaleId: string;
+  uuid: string;
+  type: 'originalEcgData' | 'chDetectionResult';
+  value: string;
+}) {
+  const file = new File(
+    [new Blob([props.value])],
+    `${props.time}_${props.userId}_${props.scaleId}_${props.uuid}_${props.type}.csv`
+  );
+  console.log('this is file', file);
+  const formdata = new FormData();
+  formdata.append('file', file);
+
+  fetch(localStorage.getItem('endpoint') + '/ecg/upload', {
+    method: 'POST',
+    body: formdata,
+    redirect: 'follow',
+  });
+}
+
+export type UserInfo = LoginMutation['login'];
+
+export {
+  getList,
+  getScaleDetail,
+  saveReport,
+  login,
+  saveHrvReport,
+  saveOriginalCsv,
+};
