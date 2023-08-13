@@ -92,6 +92,9 @@ function EvaluationList() {
       const reports = (await db.reports.toArray()).filter(
         (resport) => !resport.synced
       );
+
+      console.log('sync reports', reports);
+
       for (const report of reports) {
         const success = await saveReport({
           QuestionidAndAnsweridInput: report.evaReport,
@@ -126,12 +129,13 @@ function EvaluationList() {
         report.hrvReport &&
           saveHrvReport({
             ...report.hrvReport,
-            scaleId: -1,
+            scaleUUid: report.scaleUUId,
             uuid: report.uuid ?? '',
             userId: report.userId,
           });
       }
     }
+    sync();
     setInterval(() => {
       sync();
     }, 10 * 1000);
