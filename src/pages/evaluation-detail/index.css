@@ -58,6 +58,18 @@
   margin-bottom: 15px;
 }
 
+.question-item-image {
+  padding: 6px;
+  border: 2px solid #000;
+  display: flex;
+  font-size: 20px;
+  font-weight: bold;
+  padding-left: 20px;
+  border-radius: 20px;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
 .question-item-input {
   height: 60px;
   border: 2px solid #000;

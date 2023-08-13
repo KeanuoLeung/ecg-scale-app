@@ -438,11 +438,11 @@ export type EcgHrvReportInput = {
   powerData: Array<Scalars['Float']['input']>;
   ratioLHF: Scalars['Float']['input'];
   rmsssd: Scalars['Float']['input'];
-  scaleId: Scalars['Float']['input'];
+  scaleUUid: Scalars['String']['input'];
   sdann: Scalars['Float']['input'];
   sdnn: Scalars['Float']['input'];
   sdnni: Scalars['Float']['input'];
-  tp: Scalars['Int']['input'];
+  tp: Scalars['Float']['input'];
   triangularIndex: Scalars['Float']['input'];
   userId: Scalars['Float']['input'];
   uuid: Scalars['String']['input'];
@@ -817,6 +817,7 @@ export type Mutation = {
   signup: Auth;
   submitBaseInformation: Scale;
   submitUserInformation: User;
+  submitUserInformationList: UserIdList;
   updateAccessory: CreatAccessoryResponse;
   updateAnswer: Answer;
   updateConsulationRecord: ConsulationRecord;
@@ -1025,6 +1026,11 @@ export type MutationSubmitUserInformationArgs = {
 };
 
 
+export type MutationSubmitUserInformationListArgs = {
+  data: SubmitUserInformationList;
+};
+
+
 export type MutationUpdateAccessoryArgs = {
   data: AccessoryUpdateInput;
   id: Scalars['Int']['input'];
@@ -1165,6 +1171,7 @@ export type Query = {
   getScaleType: Array<ScaleType>;
   getScaleTypes: Array<ScaleType>;
   getUserById: User;
+  getUserCount: Scalars['Int']['output'];
   getUserDetail: User;
   getUserInformationTableData: Array<User>;
   hello: Scalars['String']['output'];
@@ -1347,6 +1354,11 @@ export type QueryGetScaleTestSearchListArgs = {
 
 export type QueryGetUserByIdArgs = {
   id: Scalars['Int']['input'];
+};
+
+
+export type QueryGetUserCountArgs = {
+  data: GetUserInformationTableData;
 };
 
 
@@ -1780,6 +1792,12 @@ export type SubmitBaseInformation = {
   tranformula?: InputMaybe<Scalars['String']['input']>;
 };
 
+export type SubmitUserInfo = {
+  realname: Scalars['String']['input'];
+  telephone: Scalars['String']['input'];
+  uuid: Scalars['String']['input'];
+};
+
 export type SubmitUserInformation = {
   address?: InputMaybe<Scalars['String']['input']>;
   age?: InputMaybe<Scalars['Int']['input']>;
@@ -1808,6 +1826,10 @@ export type SubmitUserInformation = {
   username: Scalars['String']['input'];
   uuid?: InputMaybe<Scalars['String']['input']>;
   workingYear?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type SubmitUserInformationList = {
+  userList: Array<SubmitUserInfo>;
 };
 
 export type SubsidiaryDepartment = {
@@ -1968,6 +1990,11 @@ export type User = {
   workingYear?: Maybe<Scalars['Int']['output']>;
 };
 
+export type UserIdList = {
+  __typename?: 'UserIdList';
+  idList: Array<Scalars['Int']['output']>;
+};
+
 export type TSubsidiaryDepartment = {
   __typename?: 'tSubsidiaryDepartment';
   createdAt: Scalars['DateTime']['output'];
@@ -1993,7 +2020,7 @@ export type GetScaleQuestionsQueryVariables = Exact<{
 }>;
 
 
-export type GetScaleQuestionsQuery = { __typename?: 'Query', getScaleQuestionByScaleUUIDWithTitleAndInstructions: { __typename?: 'ScaleQuestionWithTitleAndInstructionsRender', title: string, ScaleQuestionRender: Array<{ __typename?: 'ScaleQuestionRender', answerGroupCode?: string | null, name?: string | null, questionImg?: string | null, type?: number | null, id: number, answer: Array<{ __typename?: 'Answer', answerGroupCode?: string | null, name: string, id: number, uuid: string }> }> } };
+export type GetScaleQuestionsQuery = { __typename?: 'Query', getScaleQuestionByScaleUUIDWithTitleAndInstructions: { __typename?: 'ScaleQuestionWithTitleAndInstructionsRender', title: string, ScaleQuestionRender: Array<{ __typename?: 'ScaleQuestionRender', answerGroupCode?: string | null, name?: string | null, questionImg?: string | null, type?: number | null, id: number, answer: Array<{ __typename?: 'Answer', answerGroupCode?: string | null, name: string, id: number, uuid: string, picture?: string | null }> }> } };
 
 export type SaveReportMutationVariables = Exact<{
   report: ReportQuestionChooseUseQuestionidAndAnsweridInput;
@@ -2019,7 +2046,7 @@ export type LoginMutation = { __typename?: 'Mutation', login: { __typename?: 'Au
 
 
 export const GetEvaluationsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"getEvaluations"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"userId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"scaleEvaluations"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"scaleName"},"value":{"kind":"StringValue","value":"","block":false}}]}},{"kind":"Argument","name":{"kind":"Name","value":"pagination"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"page"},"value":{"kind":"IntValue","value":"1"}},{"kind":"ObjectField","name":{"kind":"Name","value":"pageSize"},"value":{"kind":"IntValue","value":"1000"}}]}},{"kind":"Argument","name":{"kind":"Name","value":"userId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"userId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"data"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"scaleName"}},{"kind":"Field","name":{"kind":"Name","value":"uuid"}},{"kind":"Field","name":{"kind":"Name","value":"individualEvaluationId"}},{"kind":"Field","name":{"kind":"Name","value":"departmentEvaluationId"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"isTest"}},{"kind":"Field","name":{"kind":"Name","value":"releaseType"}},{"kind":"Field","name":{"kind":"Name","value":"effectiveStartTime"}},{"kind":"Field","name":{"kind":"Name","value":"effectiveEndTime"}},{"kind":"Field","name":{"kind":"Name","value":"isEnable"}},{"kind":"Field","name":{"kind":"Name","value":"skipRule"}},{"kind":"Field","name":{"kind":"Name","value":"isSkip"}}]}}]}}]}}]} as unknown as DocumentNode<GetEvaluationsQuery, GetEvaluationsQueryVariables>;
-export const GetScaleQuestionsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"getScaleQuestions"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"scaleId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"getScaleQuestionByScaleUUIDWithTitleAndInstructions"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"uuid"},"value":{"kind":"Variable","name":{"kind":"Name","value":"scaleId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"ScaleQuestionRender"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"answer"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"answerGroupCode"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"uuid"}}]}},{"kind":"Field","name":{"kind":"Name","value":"answerGroupCode"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"questionImg"}},{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"id"}}]}},{"kind":"Field","name":{"kind":"Name","value":"title"}}]}}]}}]} as unknown as DocumentNode<GetScaleQuestionsQuery, GetScaleQuestionsQueryVariables>;
+export const GetScaleQuestionsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"getScaleQuestions"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"scaleId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"getScaleQuestionByScaleUUIDWithTitleAndInstructions"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"uuid"},"value":{"kind":"Variable","name":{"kind":"Name","value":"scaleId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"ScaleQuestionRender"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"answer"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"answerGroupCode"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"uuid"}},{"kind":"Field","name":{"kind":"Name","value":"picture"}}]}},{"kind":"Field","name":{"kind":"Name","value":"answerGroupCode"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"questionImg"}},{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"id"}}]}},{"kind":"Field","name":{"kind":"Name","value":"title"}}]}}]}}]} as unknown as DocumentNode<GetScaleQuestionsQuery, GetScaleQuestionsQueryVariables>;
 export const SaveReportDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"saveReport"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"report"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ReportQuestionChooseUseQuestionidAndAnsweridInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"saveReportQuestionChooseUseQuestionidAndAnswerid"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"reportQuestionChooseUseQuestionidAndAnsweridInput"},"value":{"kind":"Variable","name":{"kind":"Name","value":"report"}}}]}]}}]} as unknown as DocumentNode<SaveReportMutation, SaveReportMutationVariables>;
 export const SaveHrvReportDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"saveHrvReport"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"report"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"EcgHrvReportInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"saveEcgHrvReport"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"ecgHrvReportInput"},"value":{"kind":"Variable","name":{"kind":"Name","value":"report"}}}]}]}}]} as unknown as DocumentNode<SaveHrvReportMutation, SaveHrvReportMutationVariables>;
 export const LoginDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"login"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"username"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"password"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"login"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"data"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"username"},"value":{"kind":"Variable","name":{"kind":"Name","value":"username"}}},{"kind":"ObjectField","name":{"kind":"Name","value":"password"},"value":{"kind":"Variable","name":{"kind":"Name","value":"password"}}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"accessToken"}},{"kind":"Field","name":{"kind":"Name","value":"user"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"isAdmin"}},{"kind":"Field","name":{"kind":"Name","value":"username"}},{"kind":"Field","name":{"kind":"Name","value":"realname"}}]}}]}}]}}]} as unknown as DocumentNode<LoginMutation, LoginMutationVariables>;

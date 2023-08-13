@@ -41,6 +41,7 @@ const GET_SCALE_DETAIL = gql(/* GraphQL */ `
           name
           id
           uuid
+          picture
         }
         answerGroupCode
         name

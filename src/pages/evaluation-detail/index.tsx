@@ -20,12 +20,14 @@ enum QuestionType {
   Single = 1,
   Multiple = 2,
   Blank = 3,
+  Image = 5,
 }
 
 const QuestionTypeTitle = {
   [QuestionType.Single]: '单选题',
   [QuestionType.Multiple]: '多选题',
   [QuestionType.Blank]: '填空题',
+  [QuestionType.Image]: '图片题',
 };
 
 function EvaluationDetail() {
@@ -38,6 +40,9 @@ function EvaluationDetail() {
   const scaleId = new URLSearchParams(location.search).get('uuid');
   const [evaList] = useEvaList();
   const [skipRuleStr, setSkipRuleStr] = useState('');
+  const [username, setUsername] = useState('');
+  const [phone, setPhone] = useState('');
+  const [userchecked, setUserchecked] = useState(false);
   const {
     connectToDevice,
     debugMessages,
@@ -125,6 +130,13 @@ function EvaluationDetail() {
             result.push({ type, questionId, id: answer });
           }
           break;
+        case QuestionType.Image:
+          result.push({
+            type,
+            questionId,
+            id: answerMap[questionId] as number,
+          });
+          break;
         case QuestionType.Blank:
           result.push({
             type,
@@ -133,7 +145,7 @@ function EvaluationDetail() {
           });
           break;
         default:
-          alert('not a valid question');
+          console.log('not a valid question');
       }
     }
 
@@ -165,6 +177,30 @@ function EvaluationDetail() {
         {answer?.name}
       </div>
     ));
+
+  const renderImageSelect = (question: any) =>
+    question?.answer?.map((answer: any) => (
+      <div
+        className={`question-item-image${
+          answerMap[question?.id] === answer?.id ? ' checkedrow' : ''
+        }`}
+        key={answer?.id}
+        onTouchEnd={() =>
+          setAnswerMap((am) => ({ ...am, [question.id]: answer.id }))
+        }
+      >
+        <input
+          type="radio"
+          className="option-input radio"
+          onChange={() => void 0}
+          checked={answerMap[question?.id] === answer?.id}
+        />
+        {answer?.name}
+        <img src={answer?.picture} style={{ marginLeft: 12 }} />
+      </div>
+    ));
+
+  console.log('answer map', answerMap);
 
   useIonViewDidLeave(() => {
     if (deviceState === 'online') {
@@ -255,8 +291,65 @@ function EvaluationDetail() {
   //     '105': 21,
   //   });
   // }, []);
-  return (
-    <IonPage>
+
+  const userInfo = (
+    <div>
+      <div
+        className="detail"
+        id="question-con"
+        onScroll={(e) => {
+          const progress =
+            (e.target as any).scrollTop /
+            ((e.target as any).scrollHeight - window.innerHeight);
+          const vh = Math.round(progress * 100);
+          barRef.current && (barRef.current.style.height = `${vh}vh`);
+        }}
+      >
+        <div className="detail-card-container">
+          <div className="detail-card">
+            <div className="question-type">信息录入</div>
+            <div className="detail-title">请输入受试者的个人信息</div>
+            <div>
+              <input
+                className="question-item-input"
+                placeholder="受试者姓名"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+              />
+            </div>
+            <div>
+              <input
+                className="question-item-input"
+                placeholder="受试者手机号"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+              />
+            </div>
+            <div className="question-spacer"></div>
+            <div
+              className="next-question"
+              onClick={() => {
+                if (!username) {
+                  alert('请先填写受试者姓名');
+                  return;
+                }
+                if (!phone) {
+                  alert('请先填写受试者手机号');
+                  return;
+                }
+                setUserchecked(true);
+              }}
+            >
+              确认用户
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const detail = (
+    <div>
       <div className="progress-bar" ref={barRef}></div>
       <div
         className="detail"
@@ -284,6 +377,8 @@ function EvaluationDetail() {
                 renderSingleSelect(question)}
               {question.type === QuestionType.Multiple &&
                 renderMultiSelect(question)}
+              {question.type === QuestionType.Image &&
+                renderImageSelect(question)}
               {question.type === QuestionType.Blank && renderBlank(question)}
               <div className="question-spacer"></div>
               <div
@@ -364,8 +459,10 @@ function EvaluationDetail() {
           </div>
         ))}
       </div>
-    </IonPage>
+    </div>
   );
+
+  return <IonPage>{userchecked ? detail : userInfo}</IonPage>;
 }
 
 export default EvaluationDetail;

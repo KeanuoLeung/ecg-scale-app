@@ -51,8 +51,9 @@ function Login() {
           onClick={async () => {
             console.log(username, password);
             const result = await login(username, password);
+            localStorage.setItem('token', result?.accessToken);
             localforage.setItem('user', result);
-            history.replace('/eva-list');
+            location.href = '/eva-list'
           }}
         >
           登录
