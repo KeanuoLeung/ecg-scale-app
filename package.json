@@ -24,6 +24,7 @@
     "@types/react-dom": "^18.0.6",
     "@types/react-router": "^5.1.11",
     "@types/react-router-dom": "^5.1.7",
+    "apollo-link-error": "^1.1.13",
     "dexie": "^3.2.4",
     "dexie-react-hooks": "^1.1.6",
     "graphql": "^16.7.1",

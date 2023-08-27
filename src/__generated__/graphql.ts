@@ -126,6 +126,8 @@ export type Auth = {
   id: Scalars['Int']['output'];
   /** JWT refresh token */
   refreshToken: Scalars['JWT']['output'];
+  /** User role */
+  role?: Maybe<Scalars['String']['output']>;
   user: User;
 };
 
@@ -140,7 +142,7 @@ export type ChDetectionResult = {
   qrsIndex: Scalars['Int']['output'];
   rrInterval: Scalars['Int']['output'];
   scaleId: Scalars['Int']['output'];
-  time: Scalars['Int']['output'];
+  time: Scalars['Float']['output'];
   userId: Scalars['Int']['output'];
   uuid: Scalars['String']['output'];
 };
@@ -535,6 +537,17 @@ export type GetAllDepartmentEvaluation = {
   updatedAt: Scalars['DateTime']['output'];
 };
 
+export type GetAllIndividualEvaluation = {
+  __typename?: 'GetAllIndividualEvaluation';
+  /** Identifies the date and time when the object was created. */
+  createdAt: Scalars['DateTime']['output'];
+  data: Array<IndividualEvaluation>;
+  id: Scalars['ID']['output'];
+  totalCount?: Maybe<Scalars['Int']['output']>;
+  /** Identifies the date and time when the object was last updated. */
+  updatedAt: Scalars['DateTime']['output'];
+};
+
 export type GetAllScaleDiagnostic = {
   __typename?: 'GetAllScaleDiagnostic';
   /** Identifies the date and time when the object was created. */
@@ -792,6 +805,7 @@ export type Mutation = {
   addUpbringingHistory: UpbringingHistory;
   changePassword: User;
   createAnswer: CreateScaleAnswerResponse;
+  createHrvReport: Scalars['Boolean']['output'];
   createIndividualEvaluation: CreateResponse;
   createMergeUserScale: MergeUserScale;
   createScaleQuestion: CreateScaleQuestionResponse;
@@ -816,6 +830,7 @@ export type Mutation = {
   saveReportQuestionChooseUseQuestionidAndAnswerid: Scalars['Boolean']['output'];
   signup: Auth;
   submitBaseInformation: Scale;
+  submitScaleTypeInformation: ScaleType;
   submitUserInformation: User;
   submitUserInformationList: UserIdList;
   updateAccessory: CreatAccessoryResponse;
@@ -896,6 +911,11 @@ export type MutationChangePasswordArgs = {
 
 export type MutationCreateAnswerArgs = {
   data: CreateAnswerInput;
+};
+
+
+export type MutationCreateHrvReportArgs = {
+  uuid: Scalars['String']['input'];
 };
 
 
@@ -1018,6 +1038,11 @@ export type MutationSignupArgs = {
 
 export type MutationSubmitBaseInformationArgs = {
   data: SubmitBaseInformation;
+};
+
+
+export type MutationSubmitScaleTypeInformationArgs = {
+  data: SubmitScaleTypeInformation;
 };
 
 
@@ -1153,22 +1178,28 @@ export type Query = {
   getEducations: Array<Education>;
   getEthnicities: Array<Ethnicity>;
   getFactor: AllFactorInfo;
+  getFactorInformationToWeightlessnessReduction: GetFatcorInformationToWeightlessnessReduction;
   getFactorList: Array<ScaleFactor>;
   getFactorNumber: Scalars['Int']['output'];
   getFactorScaleType: Scalars['Int']['output'];
   getGrowthHistoryById?: Maybe<GrowthHistory>;
   getIndividualEvaluationDetail: IndividualEvaluationDetail;
-  getIndividualScalesTableData: Array<IndividualEvaluation>;
+  getIndividualScalesTableData: GetAllIndividualEvaluation;
   getQuestionByScaleName: Array<ScaleQuestion>;
+  getQuestionInformationToWeightlessnessReduction: GetQuestionInformationToWeightlessnessReduction;
   getReportInfo: ReportInfo;
   getScaleByType: ScaleReturnType;
   getScaleDetail: Scale;
   getScaleIdByName: QueryScaleIdByNameReturnType;
+  getScaleInformationToWeightlessnessReduction: GetScaleInformationToWeightlessnessReduction;
   getScaleName: Array<Scale>;
   getScaleQuestionByScaleUUID: Array<ScaleQuestionRender>;
   getScaleQuestionByScaleUUIDWithTitleAndInstructions: ScaleQuestionWithTitleAndInstructionsRender;
   getScaleTestSearchList: GetScaleTestSearchListReturnType;
   getScaleType: Array<ScaleType>;
+  getScaleTypeDetail: ScaleType;
+  getScaleTypeInformationToWeightlessnessReduction: GetScaleTypeInformationToWeightlessnessReduction;
+  getScaleTypeTableData: Array<ScaleType>;
   getScaleTypes: Array<ScaleType>;
   getUserById: User;
   getUserCount: Scalars['Int']['output'];
@@ -1179,6 +1210,7 @@ export type Query = {
   me: User;
   scaleDiagnostics: GetAllScaleDiagnostic;
   scaleEvaluations: GetAllScaleEvaluation;
+  scaleTotalCount: Scalars['Int']['output'];
   scaleTypes: Array<ScaleType>;
   scaleWarnings: GetAllScaleWarning;
   scales: Array<Scale>;
@@ -1352,6 +1384,16 @@ export type QueryGetScaleTestSearchListArgs = {
 };
 
 
+export type QueryGetScaleTypeDetailArgs = {
+  data: Scalars['Int']['input'];
+};
+
+
+export type QueryGetScaleTypeTableDataArgs = {
+  data: GetScaleTypeTableData;
+};
+
+
 export type QueryGetUserByIdArgs = {
   id: Scalars['Int']['input'];
 };
@@ -1387,6 +1429,11 @@ export type QueryScaleEvaluationsArgs = {
   input: FindScaleEvaluationInput;
   pagination: FindScaleEvaluationPage;
   userId: Scalars['Int']['input'];
+};
+
+
+export type QueryScaleTotalCountArgs = {
+  data: GetScaleTypeTableData;
 };
 
 
@@ -1481,6 +1528,9 @@ export type ReportQuestionChooseInput = {
 
 export type ReportQuestionChooseUseQuestionidAndAnsweridInput = {
   QuestionidAndAnsweridInput: Array<QuestionidAndAnsweridInput>;
+  phone: Scalars['String']['input'];
+  realname: Scalars['String']['input'];
+  role: Role;
   scaleUUid: Scalars['String']['input'];
   userId: Scalars['Int']['input'];
   uuid: Scalars['String']['input'];
@@ -1507,7 +1557,7 @@ export type Scale = {
   isFactor?: Maybe<Scalars['Boolean']['output']>;
   isSkip?: Maybe<Scalars['Boolean']['output']>;
   name: Scalars['String']['output'];
-  scacleCode?: Maybe<Scalars['String']['output']>;
+  scaleCode?: Maybe<Scalars['String']['output']>;
   scaleTypeId?: Maybe<Scalars['Int']['output']>;
   sd?: Maybe<Scalars['Float']['output']>;
   skipRule?: Maybe<Scalars['String']['output']>;
@@ -1581,8 +1631,8 @@ export type ScaleQuestion = {
   /** Identifies the date and time when the object was created. */
   createdAt: Scalars['DateTime']['output'];
   id: Scalars['Int']['output'];
-  name?: Maybe<Scalars['String']['output']>;
-  questionCode?: Maybe<Scalars['String']['output']>;
+  name: Scalars['String']['output'];
+  questionCode: Scalars['String']['output'];
   questionImg?: Maybe<Scalars['String']['output']>;
   remark?: Maybe<Scalars['String']['output']>;
   scale?: Maybe<Scale>;
@@ -1595,7 +1645,7 @@ export type ScaleQuestion = {
 export type ScaleQuestionInput = {
   answerGroupCode?: InputMaybe<Scalars['String']['input']>;
   name: Scalars['String']['input'];
-  questionCode?: InputMaybe<Scalars['String']['input']>;
+  questionCode: Scalars['String']['input'];
   questionImg?: InputMaybe<Scalars['String']['input']>;
   remark?: InputMaybe<Scalars['String']['input']>;
   scaleName: Scalars['String']['input'];
@@ -1626,8 +1676,8 @@ export type ScaleQuestionUpdateInput = {
   answerGroupCode?: InputMaybe<Scalars['String']['input']>;
   createdAt: Scalars['DateTime']['input'];
   id: Scalars['Int']['input'];
-  name?: InputMaybe<Scalars['String']['input']>;
-  questionCode?: InputMaybe<Scalars['String']['input']>;
+  name: Scalars['String']['input'];
+  questionCode: Scalars['String']['input'];
   questionImg?: InputMaybe<Scalars['String']['input']>;
   remark?: InputMaybe<Scalars['String']['input']>;
   scaleName: Scalars['String']['input'];
@@ -1740,7 +1790,7 @@ export type ScaleWithType = {
   introduction?: Maybe<Scalars['String']['output']>;
   name: Scalars['String']['output'];
   rawSourceMethod?: Maybe<Scalars['String']['output']>;
-  scacleCode?: Maybe<Scalars['String']['output']>;
+  scaleCode: Scalars['String']['output'];
   scaleInterpretationResult?: Maybe<Scalars['String']['output']>;
   scaleTimeKeeping?: Maybe<Scalars['Boolean']['output']>;
   scaleTimeLimit?: Maybe<Scalars['Int']['output']>;
@@ -1785,11 +1835,16 @@ export type SubmitBaseInformation = {
   isFactor: Scalars['Boolean']['input'];
   isSkip: Scalars['Boolean']['input'];
   name: Scalars['String']['input'];
-  scacleCode?: InputMaybe<Scalars['String']['input']>;
+  scaleCode: Scalars['String']['input'];
   scaleTypeId: Scalars['Int']['input'];
   sd?: InputMaybe<Scalars['Float']['input']>;
   skipRule?: InputMaybe<Scalars['String']['input']>;
   tranformula?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type SubmitScaleTypeInformation = {
+  id?: InputMaybe<Scalars['Int']['input']>;
+  name: Scalars['String']['input'];
 };
 
 export type SubmitUserInfo = {
@@ -1861,6 +1916,8 @@ export type Token = {
   id: Scalars['Int']['output'];
   /** JWT refresh token */
   refreshToken: Scalars['JWT']['output'];
+  /** User role */
+  role?: Maybe<Scalars['String']['output']>;
 };
 
 export type UpbringPaginationInput = {
@@ -1995,6 +2052,34 @@ export type UserIdList = {
   idList: Array<Scalars['Int']['output']>;
 };
 
+export type GetFatcorInformationToWeightlessnessReduction = {
+  __typename?: 'getFatcorInformationToWeightlessnessReduction';
+  factorNameList: Array<Scalars['String']['output']>;
+};
+
+export type GetQuestionInformationToWeightlessnessReduction = {
+  __typename?: 'getQuestionInformationToWeightlessnessReduction';
+  questionCodeList: Array<Scalars['String']['output']>;
+  questionNameList: Array<Scalars['String']['output']>;
+};
+
+export type GetScaleInformationToWeightlessnessReduction = {
+  __typename?: 'getScaleInformationToWeightlessnessReduction';
+  scaleCodeList: Array<Scalars['String']['output']>;
+  scaleNameList: Array<Scalars['String']['output']>;
+};
+
+export type GetScaleTypeInformationToWeightlessnessReduction = {
+  __typename?: 'getScaleTypeInformationToWeightlessnessReduction';
+  scaleTypeNameList: Array<Scalars['String']['output']>;
+};
+
+export type GetScaleTypeTableData = {
+  currentPage: Scalars['Int']['input'];
+  pageNumber: Scalars['Int']['input'];
+  scaleTypeName?: InputMaybe<Scalars['String']['input']>;
+};
+
 export type TSubsidiaryDepartment = {
   __typename?: 'tSubsidiaryDepartment';
   createdAt: Scalars['DateTime']['output'];
@@ -2042,11 +2127,11 @@ export type LoginMutationVariables = Exact<{
 }>;
 
 
-export type LoginMutation = { __typename?: 'Mutation', login: { __typename?: 'Auth', accessToken: any, user: { __typename?: 'User', id: string, isAdmin?: boolean | null, username: string, realname: string } } };
+export type LoginMutation = { __typename?: 'Mutation', login: { __typename?: 'Auth', accessToken: any, role?: string | null, user: { __typename?: 'User', id: string, isAdmin?: boolean | null, username: string, realname: string } } };
 
 
 export const GetEvaluationsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"getEvaluations"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"userId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"scaleEvaluations"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"scaleName"},"value":{"kind":"StringValue","value":"","block":false}}]}},{"kind":"Argument","name":{"kind":"Name","value":"pagination"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"page"},"value":{"kind":"IntValue","value":"1"}},{"kind":"ObjectField","name":{"kind":"Name","value":"pageSize"},"value":{"kind":"IntValue","value":"1000"}}]}},{"kind":"Argument","name":{"kind":"Name","value":"userId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"userId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"data"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"scaleName"}},{"kind":"Field","name":{"kind":"Name","value":"uuid"}},{"kind":"Field","name":{"kind":"Name","value":"individualEvaluationId"}},{"kind":"Field","name":{"kind":"Name","value":"departmentEvaluationId"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"isTest"}},{"kind":"Field","name":{"kind":"Name","value":"releaseType"}},{"kind":"Field","name":{"kind":"Name","value":"effectiveStartTime"}},{"kind":"Field","name":{"kind":"Name","value":"effectiveEndTime"}},{"kind":"Field","name":{"kind":"Name","value":"isEnable"}},{"kind":"Field","name":{"kind":"Name","value":"skipRule"}},{"kind":"Field","name":{"kind":"Name","value":"isSkip"}}]}}]}}]}}]} as unknown as DocumentNode<GetEvaluationsQuery, GetEvaluationsQueryVariables>;
 export const GetScaleQuestionsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"getScaleQuestions"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"scaleId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"getScaleQuestionByScaleUUIDWithTitleAndInstructions"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"uuid"},"value":{"kind":"Variable","name":{"kind":"Name","value":"scaleId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"ScaleQuestionRender"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"answer"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"answerGroupCode"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"uuid"}},{"kind":"Field","name":{"kind":"Name","value":"picture"}}]}},{"kind":"Field","name":{"kind":"Name","value":"answerGroupCode"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"questionImg"}},{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"id"}}]}},{"kind":"Field","name":{"kind":"Name","value":"title"}}]}}]}}]} as unknown as DocumentNode<GetScaleQuestionsQuery, GetScaleQuestionsQueryVariables>;
 export const SaveReportDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"saveReport"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"report"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ReportQuestionChooseUseQuestionidAndAnsweridInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"saveReportQuestionChooseUseQuestionidAndAnswerid"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"reportQuestionChooseUseQuestionidAndAnsweridInput"},"value":{"kind":"Variable","name":{"kind":"Name","value":"report"}}}]}]}}]} as unknown as DocumentNode<SaveReportMutation, SaveReportMutationVariables>;
 export const SaveHrvReportDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"saveHrvReport"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"report"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"EcgHrvReportInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"saveEcgHrvReport"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"ecgHrvReportInput"},"value":{"kind":"Variable","name":{"kind":"Name","value":"report"}}}]}]}}]} as unknown as DocumentNode<SaveHrvReportMutation, SaveHrvReportMutationVariables>;
-export const LoginDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"login"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"username"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"password"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"login"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"data"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"username"},"value":{"kind":"Variable","name":{"kind":"Name","value":"username"}}},{"kind":"ObjectField","name":{"kind":"Name","value":"password"},"value":{"kind":"Variable","name":{"kind":"Name","value":"password"}}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"accessToken"}},{"kind":"Field","name":{"kind":"Name","value":"user"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"isAdmin"}},{"kind":"Field","name":{"kind":"Name","value":"username"}},{"kind":"Field","name":{"kind":"Name","value":"realname"}}]}}]}}]}}]} as unknown as DocumentNode<LoginMutation, LoginMutationVariables>;
+export const LoginDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"login"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"username"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"password"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"login"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"data"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"username"},"value":{"kind":"Variable","name":{"kind":"Name","value":"username"}}},{"kind":"ObjectField","name":{"kind":"Name","value":"password"},"value":{"kind":"Variable","name":{"kind":"Name","value":"password"}}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"accessToken"}},{"kind":"Field","name":{"kind":"Name","value":"user"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"isAdmin"}},{"kind":"Field","name":{"kind":"Name","value":"username"}},{"kind":"Field","name":{"kind":"Name","value":"realname"}}]}},{"kind":"Field","name":{"kind":"Name","value":"role"}}]}}]}}]} as unknown as DocumentNode<LoginMutation, LoginMutationVariables>;

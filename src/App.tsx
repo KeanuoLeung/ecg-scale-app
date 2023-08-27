@@ -34,6 +34,7 @@ import Settings from './pages/settings';
 import demo from './constants/demo';
 import makeArrayCsv from './tools/makeArrayCsv';
 import Login from './pages/login';
+import SyncList from './pages/sync-list';
 
 setupIonicReact();
 
@@ -160,6 +161,9 @@ const App: React.FC = () => {
             </Route>
             <Route exact path="/login">
               <Login />
+            </Route>
+            <Route exact path="/sync-list">
+              <SyncList />
             </Route>
             <Route exact path="/">
               <Redirect to="/eva-list" />

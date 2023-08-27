@@ -3,14 +3,38 @@ import {
   InMemoryCache,
   ApolloProvider,
   gql,
+  from,
+  HttpLink,
+  ApolloLink,
 } from '@apollo/client';
+import { onError } from '@apollo/client/link/error';
 import localforage from 'localforage';
 
-const client = new ApolloClient({
+const errorLink = onError(({ graphQLErrors, networkError }) => {
+  console.log('errorsss', { graphQLErrors, networkError });
+  if ((graphQLErrors as any)?.[0]?.extensions?.originalError?.statusCode === 401) {
+    location.href = '/login';
+  }
+});
+
+const httpLink = new HttpLink({
   uri: `${localStorage.getItem('endpoint') ?? ''}/graphql`,
-  headers: {
-    Authorization: 'Bearer ' + localStorage.getItem('token'),
-  },
+});
+
+const authLink = new ApolloLink((operation, forward) => {
+  // add the authorization to the headers
+  operation.setContext(({ headers = {} }) => ({
+    headers: {
+      ...headers,
+      authorization: 'Bearer ' + localStorage.getItem('token'),
+    },
+  }));
+
+  return forward(operation);
+});
+
+const client = new ApolloClient({
+  link: from([errorLink, authLink, httpLink]),
   cache: new InMemoryCache(),
 });
 

@@ -49,10 +49,12 @@ function EvaluationList() {
     cancelMonitor,
   } = useContext(EcgDeviceContext);
 
+  const [userType, setUserType] = useState<'user' | 'admin'>('user');
   const [disabledReports, setDisabledReports] = useState<string[]>([]);
   const [connecting, setConnecting] = useState(false);
 
   const [opingEva, setOpingEva] = useState('');
+  const [opingSettings, setOpingSettings] = useState(false);
 
   const [list, refresh] = useEvaList();
 
@@ -66,14 +68,24 @@ function EvaluationList() {
     const reportsToUpload = await db.reports.toArray();
     console.log('reportsToUpload', reportsToUpload, list);
     const result = [];
+    const now = Date.now();
     for (const scale of list) {
       if (
-        scale.releaseType === ReleaseType.SINGLE &&
+        (scale.releaseType === ReleaseType.SINGLE ||
+          scale.releaseType === ReleaseType.EXAM) &&
         reportsToUpload.some((report) => report.scaleUUId === scale.uuid)
       ) {
         result.push(scale.uuid ?? '');
       }
+
+      if (
+        new Date(scale.effectiveStartTime).valueOf() > now ||
+        new Date(scale.effectiveEndTime).valueOf() < now
+      ) {
+        result.push(scale.uuid ?? '');
+      }
     }
+    console.log('disabled reports', disabledReports);
     setDisabledReports(result);
   };
 
@@ -99,8 +111,11 @@ function EvaluationList() {
         const success = await saveReport({
           QuestionidAndAnsweridInput: report.evaReport,
           scaleUUid: report.scaleUUId,
-          userId: report.userId,
+          realname: report.realName ?? '',
+          phone: report.phone ?? '',
           uuid: report.uuid ?? '',
+          role: 'DOCTOR' as any,
+          userId: 123,
         });
         if (success) {
           report.id && db.reports.update(report.id, { synced: true });
@@ -142,12 +157,14 @@ function EvaluationList() {
 
     localforage.getItem<UserInfo>('user').then((res) => {
       setUserName(res?.user?.realname ?? '用户');
+      console.log('user', res?.user);
     });
   }, []);
 
   console.log('disabled reports', disabledReports);
+  console.log('eva list', list);
   return (
-    <IonPage>
+    <IonPage style={{ overflow: 'scroll' }}>
       <IonActionSheet
         header="是否连接心电仪测试"
         mode="ios"
@@ -195,6 +212,57 @@ function EvaluationList() {
           },
         ]}
       ></IonActionSheet>
+      <IonActionSheet
+        header="更多操作"
+        mode="ios"
+        isOpen={opingSettings}
+        onDidDismiss={() => {
+          setOpingSettings(false);
+        }}
+        buttons={[
+          {
+            text: '设置服务器地址',
+            data: {
+              action: 'withoutEcg',
+            },
+            handler: () => {
+              history.push('/settings');
+            },
+          },
+          {
+            text: '刷新页面',
+            data: {
+              action: 'refresh',
+            },
+            handler: () => {
+              refresh();
+              checkDisabled();
+              // TODO: toast
+            },
+          },
+          {
+            text: '同步状态',
+            data: {
+              action: 'sync-list',
+            },
+            handler: () => {
+              // TODO: toast
+              history.push('/sync-list');
+            },
+          },
+          {
+            text: '退出登录',
+            role: 'destructive',
+            data: {
+              action: 'withoutEcg',
+            },
+            handler: () => {
+              localStorage.setItem('token', '');
+              location.href = '/login';
+            },
+          },
+        ]}
+      ></IonActionSheet>
       <IonLoading
         mode="ios"
         message="正在连接设备，请确保设备处于打开状态..."
@@ -205,25 +273,14 @@ function EvaluationList() {
           <span>🌞 欢迎您，{userName}</span>
           <span
             onClick={() => {
-              history.push('/settings');
+              setOpingSettings(true);
             }}
           >
             ⚙️
           </span>
         </div>
         {/* <div id="reader" style={{ width: 600, display: 'none' }}></div> */}
-        <div
-          className="list-subtitle"
-          onClick={async () => {
-            if (deviceState === 'offline') connectToDevice();
-            if (deviceState === 'online') {
-              const result = await stopMonitor();
-              console.log('this is result', result.ecgRawDatas, result);
-            }
-          }}
-        >
-          请选择量表开始测试 {deviceState} {currentDeviceId}
-        </div>
+        <div className="list-subtitle">请选择量表开始测试</div>
         {/* {debugMessages.map((msg) => (
           <div key={msg} className="list-subtitle">
             {msg}
@@ -237,7 +294,7 @@ function EvaluationList() {
             key={evaluation.uuid}
             onClick={() => {
               if (disabledReports.includes(evaluation.uuid ?? '?')) {
-                alert('量表已提交');
+                alert('量表已失效');
                 return;
               }
               setOpingEva(evaluation.uuid ?? '');
@@ -245,7 +302,22 @@ function EvaluationList() {
             }}
           >
             <div>{evaluation.scaleName}</div>
-            <div className="list-card-date">创建于：{evaluation.createdAt}</div>
+            {userType === 'admin' && (
+              <div className="list-card-date">
+                创建于：{new Date(evaluation.createdAt).toLocaleString()}
+              </div>
+            )}
+            {userType === 'user' && (
+              <>
+                <div className="list-card-date">
+                  开始：
+                  {new Date(evaluation.effectiveStartTime).toLocaleString()}
+                </div>
+                <div className="list-card-date">
+                  结束：{new Date(evaluation.effectiveEndTime).toLocaleString()}
+                </div>
+              </>
+            )}
           </div>
         ))}
       </div>

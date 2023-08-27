@@ -155,7 +155,6 @@ public class EcgPlugin extends Plugin {
     }
 
     private void onScanResult(ChScanResult result) {
-        showToast("扫描到了！");
 
         ChScanResult target = null;
         for (ChScanResult obj : deviceList) {

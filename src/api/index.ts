@@ -80,6 +80,7 @@ const LOGIN = gql(/* GraphQL */ `
         username
         realname
       }
+      role
     }
   }
 `);

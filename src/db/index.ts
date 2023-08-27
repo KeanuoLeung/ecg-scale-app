@@ -12,6 +12,8 @@ export interface Report {
   chDetectionResult?: any;
   timestamp?: number;
   synced?: boolean;
+  realName?: string;
+  phone?: string;
 }
 
 export class DB extends Dexie {
@@ -21,7 +23,7 @@ export class DB extends Dexie {
     super('report');
     this.version(2).stores({
       reports:
-        '++id, uuid, scaleUUId, userId, evaReport, originalEcgData, chDetectionResult, hrvReport, timestamp, synced',
+        '++id, uuid, scaleUUId, userId, evaReport, originalEcgData, chDetectionResult, hrvReport, timestamp, synced, realName, phone',
     });
   }
 }

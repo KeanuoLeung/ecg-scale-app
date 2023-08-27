@@ -53,6 +53,10 @@ function EvaluationDetail() {
   } = useContext(EcgDeviceContext);
 
   useEffect(() => {
+    setUserchecked(true);
+  }, []);
+
+  useEffect(() => {
     const curEva = evaList.find((item) => item.uuid === scaleId);
     if (curEva?.isSkip && curEva?.skipRule) {
       setSkipRuleStr(curEva.skipRule);
@@ -348,6 +352,8 @@ function EvaluationDetail() {
     </div>
   );
 
+  console.log('skiped questions', skipedQuestions);
+
   const detail = (
     <div>
       <div className="progress-bar" ref={barRef}></div>
@@ -373,6 +379,9 @@ function EvaluationDetail() {
                 {QuestionTypeTitle[question.type as QuestionType]}
               </div>
               <div className="detail-title">{question.name}</div>
+              {question.questionImg && (
+                <img style={{ borderRadius: 30, marginBottom: 24 }} src={question.questionImg} />
+              )}
               {question.type === QuestionType.Single &&
                 renderSingleSelect(question)}
               {question.type === QuestionType.Multiple &&
@@ -442,6 +451,8 @@ function EvaluationDetail() {
                       chDetectionResult: makeArrayCsv(result?.ecgResults ?? []),
                       hrvReport: result?.hrvReport,
                       timestamp: Date.now(),
+                      realName: username,
+                      phone: phone,
                     });
                     history.back();
                     // id &&saveReport({

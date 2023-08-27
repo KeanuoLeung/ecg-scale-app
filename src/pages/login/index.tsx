@@ -52,7 +52,7 @@ function Login() {
             console.log(username, password);
             const result = await login(username, password);
             localStorage.setItem('token', result?.accessToken);
-            localforage.setItem('user', result);
+            await localforage.setItem('user', result);
             location.href = '/eva-list'
           }}
         >
