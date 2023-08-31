@@ -49,7 +49,7 @@ function EvaluationList() {
     cancelMonitor,
   } = useContext(EcgDeviceContext);
 
-  const [userType, setUserType] = useState<'user' | 'admin'>('user');
+  const [userType, setUserType] = useState<'ADMIN' | 'USER'>('USER');
   const [disabledReports, setDisabledReports] = useState<string[]>([]);
   const [connecting, setConnecting] = useState(false);
 
@@ -114,8 +114,6 @@ function EvaluationList() {
           realname: report.realName ?? '',
           phone: report.phone ?? '',
           uuid: report.uuid ?? '',
-          role: 'DOCTOR' as any,
-          userId: 123,
         });
         if (success) {
           report.id && db.reports.update(report.id, { synced: true });
@@ -158,6 +156,7 @@ function EvaluationList() {
     localforage.getItem<UserInfo>('user').then((res) => {
       setUserName(res?.user?.realname ?? '用户');
       console.log('user', res?.user);
+      setUserType((res?.role as any) ?? 'ADMIN');
     });
   }, []);
 
@@ -302,12 +301,12 @@ function EvaluationList() {
             }}
           >
             <div>{evaluation.scaleName}</div>
-            {userType === 'admin' && (
+            {userType === 'ADMIN' && (
               <div className="list-card-date">
                 创建于：{new Date(evaluation.createdAt).toLocaleString()}
               </div>
             )}
-            {userType === 'user' && (
+            {userType === 'USER' && (
               <>
                 <div className="list-card-date">
                   开始：

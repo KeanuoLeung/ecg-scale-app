@@ -43,6 +43,7 @@ function EvaluationDetail() {
   const [username, setUsername] = useState('');
   const [phone, setPhone] = useState('');
   const [userchecked, setUserchecked] = useState(false);
+  const [userType, setUserType] = useState<'ADMIN' | 'USER'>('ADMIN');
   const {
     connectToDevice,
     debugMessages,
@@ -53,8 +54,14 @@ function EvaluationDetail() {
   } = useContext(EcgDeviceContext);
 
   useEffect(() => {
-    setUserchecked(true);
+    localforage.getItem<UserInfo>('user').then((res) => {
+      setUserType((res?.role as any) ?? 'ADMIN');
+    });
   }, []);
+
+  useEffect(() => {
+    if (userType === 'USER') setUserchecked(true);
+  }, [userType]);
 
   useEffect(() => {
     const curEva = evaList.find((item) => item.uuid === scaleId);
@@ -380,7 +387,10 @@ function EvaluationDetail() {
               </div>
               <div className="detail-title">{question.name}</div>
               {question.questionImg && (
-                <img style={{ borderRadius: 30, marginBottom: 24 }} src={question.questionImg} />
+                <img
+                  style={{ borderRadius: 30, marginBottom: 24 }}
+                  src={question.questionImg}
+                />
               )}
               {question.type === QuestionType.Single &&
                 renderSingleSelect(question)}

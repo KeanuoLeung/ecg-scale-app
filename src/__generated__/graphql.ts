@@ -1530,9 +1530,7 @@ export type ReportQuestionChooseUseQuestionidAndAnsweridInput = {
   QuestionidAndAnsweridInput: Array<QuestionidAndAnsweridInput>;
   phone: Scalars['String']['input'];
   realname: Scalars['String']['input'];
-  role: Role;
   scaleUUid: Scalars['String']['input'];
-  userId: Scalars['Int']['input'];
   uuid: Scalars['String']['input'];
 };
 

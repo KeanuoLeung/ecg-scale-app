@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { IonPage } from '@ionic/react';
+import { IonPage, useIonViewDidLeave } from '@ionic/react';
 
 import {
   BarcodeScanner,
@@ -39,6 +39,11 @@ function Settings() {
       BarcodeScanner.startScan();
     });
   };
+
+  useIonViewDidLeave(() => {
+    document.querySelector('body')?.classList.remove('barcode-scanner-active');
+    BarcodeScanner.stopScan();
+  }, []);
   return (
     <IonPage>
       <div className="setting-content">
