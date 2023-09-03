@@ -1,5 +1,5 @@
 export enum ReleaseType {
-  SINGLE = 0,
-  MULTIPLE = 1,
-  EXAM = 2,
+  SINGLE = 1,
+  MULTIPLE = 2,
+  EXAM = 3,
 }

@@ -69,10 +69,10 @@ function EvaluationList() {
     console.log('reportsToUpload', reportsToUpload, list);
     const result = [];
     const now = Date.now();
+    console.log('all list', list);
     for (const scale of list) {
       if (
-        (scale.releaseType === ReleaseType.SINGLE ||
-          scale.releaseType === ReleaseType.EXAM) &&
+        scale.releaseType === ReleaseType.SINGLE &&
         reportsToUpload.some((report) => report.scaleUUId === scale.uuid)
       ) {
         result.push(scale.uuid ?? '');

@@ -96,6 +96,7 @@ function EvaluationDetail() {
   console.log('skip rule', skipRule);
 
   const skipedQuestions = useMemo(() => {
+    console.log('see questions', questions);
     const finalQuestions = [];
     for (let idx = 0; idx < questions.length; idx++) {
       const question = questions[idx];
@@ -118,7 +119,12 @@ function EvaluationDetail() {
     // setQuestions(BLANK_QUESTIONS);
     async function run() {
       const questions: any = await localforage.getItem(`scale-${scaleId}`);
-      setQuestions(questions?.ScaleQuestionRender as any[]);
+      setQuestions(
+        questions?.ScaleQuestionRender?.map?.((question: any, idx: number) => ({
+          ...question,
+          idx,
+        })) ?? ([] as any[])
+      );
       setId(questions.id);
     }
     run();
@@ -385,7 +391,9 @@ function EvaluationDetail() {
               <div className="question-type">
                 {QuestionTypeTitle[question.type as QuestionType]}
               </div>
-              <div className="detail-title">{question.name}</div>
+              <div className="detail-title">
+                {question.idx + 1}.{question.name}
+              </div>
               {question.questionImg && (
                 <img
                   style={{ borderRadius: 30, marginBottom: 24 }}
