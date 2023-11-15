@@ -2,7 +2,7 @@ import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'com.cheroee.combinedemo',
-  appName: 'ecg-scale-app',
+  appName: 'ECG',
   webDir: 'build',
   server: {
     androidScheme: 'http'

@@ -46,8 +46,13 @@ function SyncList() {
   useEffect(() => {
     async function run() {
       const reports = await db.reports.toArray();
+      const ecgs = await db.ecgRecords.toArray();
 
-      setList(reports);
+      setList(
+        [...reports, ...ecgs.map((item) => ({ ...item, isEcg: true }))].sort(
+          (a, b) => (b.timestamp ?? 0) - (a.timestamp ?? 0)
+        )
+      );
     }
 
     run();
@@ -64,10 +69,10 @@ function SyncList() {
         {list.map((record) => (
           <div className={`list-card`} key={record.uuid}>
             <div>
-              {
-                evalist.find((item) => item.uuid === record.scaleUUId)
-                  ?.scaleName
-              }
+              {record.isEcg
+                ? '心电测试数据'
+                : evalist.find((item) => item.uuid === record.scaleUUId)
+                    ?.scaleName}
             </div>
             <div>{record.synced ? '已同步' : '未同步'}</div>
             <div>提交时间: {new Date(record.timestamp).toLocaleString()}</div>

@@ -70,7 +70,8 @@
     "eject": "react-scripts eject",
     "lint": "eslint --ext .ts,.tsx src",
     "compile": "graphql-codegen",
-    "watch": "graphql-codegen -w"
+    "watch": "graphql-codegen -w",
+    "dev": "ionic capacitor run android -l --external"
   },
   "browserslist": [
     "Chrome >=79",

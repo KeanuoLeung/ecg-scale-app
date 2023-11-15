@@ -1,7 +1,7 @@
 import { registerPlugin } from '@capacitor/core';
 import { createContext } from 'react';
 
-type Device = { devices: { pid: string; mac: string; name: string }[] };
+export type Device = { devices: { pid: string; mac: string; name: string }[] };
 
 export type DeviceState = 'offline' | 'online';
 
@@ -16,6 +16,9 @@ export type EcgDevice = {
     hrvReport?: HrvReport;
   }>;
   cancelMonitor: () => void;
+  reportUUIDs: string[];
+  addReportUUIDs: (string: string) => void;
+  bpm: string;
 };
 
 export type EcgRawData = { time: number; isLost: boolean; data: number[] };
@@ -61,6 +64,9 @@ export const EcgDeviceContext = createContext<EcgDevice>({
   },
   cancelMonitor: () => void 0,
   debugMessages: [],
+  reportUUIDs: [],
+  addReportUUIDs: () => void 0,
+  bpm: '',
 });
 
 type EcgPlugin = {

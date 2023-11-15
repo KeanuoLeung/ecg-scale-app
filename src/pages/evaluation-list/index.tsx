@@ -15,6 +15,7 @@ import { EcgDeviceContext } from '../../tools/ecg-plugin';
 import { Html5QrcodeScanner, Html5Qrcode } from 'html5-qrcode';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import base64ToFile from '../../tools/base64ToFile';
+import { v4 as uuid } from 'uuid';
 import {
   UserInfo,
   getList,
@@ -105,6 +106,8 @@ function EvaluationList() {
         (resport) => !resport.synced
       );
 
+      const ecgs = (await db.ecgRecords.toArray()).filter((ecg) => !ecg.synced);
+
       console.log('sync reports', reports);
 
       for (const report of reports) {
@@ -118,40 +121,62 @@ function EvaluationList() {
         if (success) {
           report.id && db.reports.update(report.id, { synced: true });
         }
+      }
+
+      for (const ecg of ecgs) {
+        const {
+          id,
+          originalEcgData,
+          chDetectionResult,
+          hrvReport,
+          userId,
+          reportUUIDList,
+        } = ecg;
         // 心电数据
-        report.originalEcgData &&
-          saveOriginalCsv({
+        if (originalEcgData && chDetectionResult && hrvReport) {
+          const _uuid = uuid();
+          console.log('[syncing ecg]', {
+            originalEcgData,
+            chDetectionResult,
+            hrvReport,
+          });
+          await saveOriginalCsv({
             time: Date.now(),
-            userId: String(report.userId),
-            scaleId: report.scaleUUId,
-            uuid: report.uuid ?? '',
+            userId: String(userId),
+            scaleId: '',
+            uuid: _uuid,
             type: 'originalEcgData',
-            value: report.originalEcgData,
+            value: originalEcgData,
+            reportUUIDList: reportUUIDList ?? [],
           });
-        // 心率数据
-        report.chDetectionResult &&
-          saveOriginalCsv({
+          await saveOriginalCsv({
             time: Date.now(),
-            userId: String(report.userId),
-            scaleId: report.scaleUUId,
-            uuid: report.uuid ?? '',
+            userId: String(userId),
+            scaleId: '',
+            uuid: _uuid,
             type: 'chDetectionResult',
-            value: report.chDetectionResult,
+            value: chDetectionResult,
+            reportUUIDList: reportUUIDList ?? [],
           });
-        // report
-        report.hrvReport &&
-          saveHrvReport({
-            ...report.hrvReport,
-            scaleUUid: report.scaleUUId,
-            uuid: report.uuid ?? '',
-            userId: report.userId,
+          const c = await saveHrvReport({
+            ...hrvReport,
+            reportUuidList: reportUUIDList ?? [],
+            uuid: _uuid,
+            userId: userId,
           });
+          if (c) {
+            console.log('hihi');
+            id && db.ecgRecords.update(id, { synced: true });
+          }
+        }
       }
     }
     sync();
     setInterval(() => {
       sync();
     }, 10 * 1000);
+
+    (window as any).sync = sync;
 
     localforage.getItem<UserInfo>('user').then((res) => {
       setUserName(res?.user?.realname ?? '用户');
@@ -189,18 +214,13 @@ function EvaluationList() {
             },
             handler: async () => {
               // 连接心电仪，展示个loading界面
-              setConnecting(true);
-              const timer = setTimeout(() => {
-                cancelMonitor();
-                alert('连接失败，请重启APP');
-                setConnecting(false);
-              }, 30000);
+              // setConnecting(true);
               try {
                 const result = await connectToDevice();
                 if (result) {
                   history.push(`/eva-detail?uuid=${opingEva}`);
-                  setConnecting(false);
-                  clearTimeout(timer);
+                  // setConnecting(false);
+                  // clearTimeout(timer);
                 }
               } catch (e) {
                 cancelMonitor();
@@ -285,6 +305,24 @@ function EvaluationList() {
             {msg}
           </div>
         ))} */}
+        <div
+          className={`list-card`}
+          onClick={() => {
+            // history.push('/eva-detail');
+          }}
+        >
+          <div
+            onClick={async () => {
+              const result = await connectToDevice();
+              if (result) {
+                history.push('/ecg-only');
+              }
+            }}
+          >
+            ❤️ 进行心率变异性测试
+          </div>
+        </div>
+        <div className="divider"></div>
         {list.map((evaluation) => (
           <div
             className={`list-card ${
@@ -296,7 +334,11 @@ function EvaluationList() {
                 alert('量表已失效');
                 return;
               }
-              setOpingEva(evaluation.uuid ?? '');
+              if (deviceState !== 'online') {
+                setOpingEva(evaluation.uuid ?? '');
+              } else {
+                history.push(`/eva-detail?uuid=${evaluation.uuid}`);
+              }
               // history.push('/eva-detail');
             }}
           >

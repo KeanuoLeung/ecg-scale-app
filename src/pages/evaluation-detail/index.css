@@ -47,7 +47,7 @@
 }
 
 .question-item {
-  height: 60px;
+  min-height: 60px;
   border: 2px solid #000;
   display: flex;
   font-size: 20px;
@@ -71,7 +71,6 @@
 }
 
 .question-item-input {
-  height: 60px;
   border: 2px solid #000;
   display: flex;
   font-size: 20px;
@@ -140,6 +139,7 @@ label {
 }
 .option-input.radio {
   border-radius: 50%;
+  flex-shrink: 0;
 }
 .option-input.radio::after {
   border-radius: 50%;

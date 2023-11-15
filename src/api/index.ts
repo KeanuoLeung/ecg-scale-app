@@ -66,7 +66,10 @@ const SAVE_REPORT = gql(/* GraphQL */ `
 
 const SAVE_HRV_REPORT = gql(/* GraphQL */ `
   mutation saveHrvReport($report: EcgHrvReportInput!) {
-    saveEcgHrvReport(ecgHrvReportInput: $report)
+    saveEcgHrvReport(ecgHrvReportInput: $report) {
+      success
+      message
+    }
   }
 `);
 
@@ -136,6 +139,7 @@ async function saveOriginalCsv(props: {
   uuid: string;
   type: 'originalEcgData' | 'chDetectionResult';
   value: string;
+  reportUUIDList: string[];
 }) {
   const file = new File(
     [new Blob([props.value])],
@@ -144,6 +148,7 @@ async function saveOriginalCsv(props: {
   console.log('this is file', file);
   const formdata = new FormData();
   formdata.append('file', file);
+  formdata.append('reportUuidList', JSON.stringify(props.reportUUIDList));
 
   fetch(localStorage.getItem('endpoint') + '/ecg/upload', {
     method: 'POST',

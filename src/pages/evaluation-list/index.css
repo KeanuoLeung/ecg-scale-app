@@ -34,3 +34,9 @@
 .disabled {
   opacity: 0.4;
 }
+
+.divider {
+  border-bottom: 3px dashed #000;
+  margin: 0 10px;
+  margin-bottom: 20px;
+}

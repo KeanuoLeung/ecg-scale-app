@@ -51,6 +51,7 @@ function EvaluationDetail() {
     currentDeviceId,
     stopMonitor,
     cancelMonitor,
+    addReportUUIDs,
   } = useContext(EcgDeviceContext);
 
   useEffect(() => {
@@ -219,11 +220,11 @@ function EvaluationDetail() {
 
   console.log('answer map', answerMap);
 
-  useIonViewDidLeave(() => {
-    if (deviceState === 'online') {
-      cancelMonitor();
-    }
-  });
+  // useIonViewDidLeave(() => {
+  //   if (deviceState === 'online') {
+  //     cancelMonitor();
+  //   }
+  // });
 
   const renderMultiSelect = (question: any) =>
     question?.answer?.map((answer: any) => (
@@ -418,11 +419,11 @@ function EvaluationDetail() {
                     alert('请先作答此题目。');
                     return;
                   }
-                  let result: {
-                    ecgRawDatas: EcgRawData[];
-                    ecgResults: EcgResult[];
-                    hrvReport?: HrvReport | undefined;
-                  } | null = null;
+                  // let result: {
+                  //   ecgRawDatas: EcgRawData[];
+                  //   ecgResults: EcgResult[];
+                  //   hrvReport?: HrvReport | undefined;
+                  // } | null = null;
                   if (idx === arr.length - 1) {
                     const firstNot = skipedQuestions.findIndex(
                       (question) => !answerMap[question.id]
@@ -432,32 +433,27 @@ function EvaluationDetail() {
                       scrollToNext(firstNot);
                       return;
                     }
-                    try {
-                      if (deviceState === 'online') {
-                        result = await stopMonitor();
-                        // 上报心电数据
-                        console.log('心电数据', result);
-                      }
-                    } catch (e) {
-                      present({
-                        message: '请稍等，我们还没有收集到足够的心电数据',
-                        duration: 1500,
-                        position: 'top',
-                      });
-                      console.log('something went wrong', e);
-                    }
+                    // try {
+                    //   if (deviceState === 'online') {
+                    //     result = await stopMonitor();
+                    //     // 上报心电数据
+                    //     console.log('心电数据', result);
+                    //   }
+                    // } catch (e) {
+                    //   present({
+                    //     message: '请稍等，我们还没有收集到足够的心电数据',
+                    //     duration: 1500,
+                    //     position: 'top',
+                    //   });
+                    //   return;
+                    //   console.log('something went wrong', e);
+                    // }
 
                     const answers = generateQuestionAnswers();
-                    console.log('adding', {
-                      uuid: 'test-aa',
-                      scaleId: id,
-                      userId: (await localforage.getItem('userId')) ?? 0,
-                      evaReport: answers,
-                      originalEcgData: makeArrayCsv(result?.ecgRawDatas ?? []),
-                      chDetectionResult: makeArrayCsv(result?.ecgResults ?? []),
-                    });
+                    const _uuid = uuid();
+                    addReportUUIDs(_uuid);
                     db.reports.add({
-                      uuid: uuid(),
+                      uuid: _uuid,
                       scaleUUId: scaleId ?? '',
                       userId:
                         Number(
@@ -465,9 +461,12 @@ function EvaluationDetail() {
                             ?.id
                         ) ?? 0,
                       evaReport: answers,
-                      originalEcgData: makeArrayCsv(result?.ecgRawDatas ?? []),
-                      chDetectionResult: makeArrayCsv(result?.ecgResults ?? []),
-                      hrvReport: result?.hrvReport,
+                      // originalEcgData: makeArrayCsv(result?.ecgRawDatas ?? []),
+                      // chDetectionResult: makeArrayCsv(result?.ecgResults ?? []),
+                      // hrvReport: result?.hrvReport,
+                      originalEcgData: '',
+                      chDetectionResult: '',
+                      //  hrvReport: result?.hrvReport,
                       timestamp: Date.now(),
                       realName: username,
                       phone: phone,

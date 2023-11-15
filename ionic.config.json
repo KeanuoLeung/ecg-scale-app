@@ -1,5 +1,5 @@
 {
-  "name": "ecg-scale-app",
+  "name": "ECG",
   "integrations": {
     "capacitor": {}
   },

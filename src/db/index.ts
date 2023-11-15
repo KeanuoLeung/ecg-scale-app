@@ -16,14 +16,28 @@ export interface Report {
   phone?: string;
 }
 
+export interface EcgRecord {
+  id?: number;
+  originalEcgData?: any;
+  chDetectionResult?: any;
+  timestamp?: number;
+  synced?: boolean;
+  hrvReport?: HrvReport;
+  reportUUIDList?: string[];
+  userId: number;
+}
+
 export class DB extends Dexie {
   reports!: Table<Report>;
+  ecgRecords!: Table<EcgRecord>;
 
   constructor() {
     super('report');
     this.version(2).stores({
       reports:
         '++id, uuid, scaleUUId, userId, evaReport, originalEcgData, chDetectionResult, hrvReport, timestamp, synced, realName, phone',
+      ecgRecords:
+        '++id, originalEcgData, chDetectionResult, timestamp, synced, hrvReport, reportUUIDList, userId',
     });
   }
 }

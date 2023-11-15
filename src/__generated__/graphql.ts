@@ -141,7 +141,6 @@ export type ChDetectionResult = {
   qrsDelay: Scalars['Int']['output'];
   qrsIndex: Scalars['Int']['output'];
   rrInterval: Scalars['Int']['output'];
-  scaleId: Scalars['Int']['output'];
   time: Scalars['Float']['output'];
   userId: Scalars['Int']['output'];
   uuid: Scalars['String']['output'];
@@ -154,8 +153,8 @@ export type ChDetectionResultInput = {
   morphType: Scalars['Int']['input'];
   qrsDelay: Scalars['Int']['input'];
   qrsIndex: Scalars['Int']['input'];
+  reportUuidList: Scalars['String']['input'];
   rrInterval: Scalars['Int']['input'];
-  scaleId: Scalars['Int']['input'];
   time: Scalars['Int']['input'];
   userId: Scalars['Int']['input'];
   uuid: Scalars['String']['input'];
@@ -164,15 +163,20 @@ export type ChDetectionResultInput = {
 export type ChangeInformationInput = {
   address?: InputMaybe<Scalars['String']['input']>;
   age?: InputMaybe<Scalars['Int']['input']>;
+  birthDate?: InputMaybe<Scalars['DateTime']['input']>;
+  birthPlace?: InputMaybe<Scalars['String']['input']>;
+  bloodType?: InputMaybe<Scalars['Int']['input']>;
+  career?: InputMaybe<Scalars['Int']['input']>;
   educationId?: InputMaybe<Scalars['Int']['input']>;
   email?: InputMaybe<Scalars['String']['input']>;
   ethnicityId?: InputMaybe<Scalars['Int']['input']>;
+  familyDescription?: InputMaybe<Scalars['String']['input']>;
   gender?: InputMaybe<Scalars['Int']['input']>;
+  householdType?: InputMaybe<Scalars['Int']['input']>;
   identificationCard?: InputMaybe<Scalars['String']['input']>;
   introduction?: InputMaybe<Scalars['String']['input']>;
-  jobNumber?: InputMaybe<Scalars['Int']['input']>;
   marital?: InputMaybe<Scalars['Int']['input']>;
-  qualification?: InputMaybe<Scalars['String']['input']>;
+  nativePlace?: InputMaybe<Scalars['String']['input']>;
   realname?: InputMaybe<Scalars['String']['input']>;
   remark?: InputMaybe<Scalars['String']['input']>;
   telephone?: InputMaybe<Scalars['String']['input']>;
@@ -182,6 +186,31 @@ export type ChangeInformationInput = {
 export type ChangePasswordInput = {
   newPassword: Scalars['String']['input'];
   oldPassword: Scalars['String']['input'];
+};
+
+export type CommonSaveReturn = {
+  __typename?: 'CommonSaveReturn';
+  message: Scalars['String']['output'];
+  success: Scalars['Boolean']['output'];
+};
+
+export type CommonScaleData = {
+  scaleLeftIdList: Array<Scalars['String']['input']>;
+  scaleRightIdList: Array<Scalars['String']['input']>;
+};
+
+export type ComprehensiveReport = {
+  __typename?: 'ComprehensiveReport';
+  hrvReport_ecgInfo?: Maybe<Scalars['String']['output']>;
+  hrvReport_testChart?: Maybe<Scalars['String']['output']>;
+  hrvReport_userInfo?: Maybe<Scalars['String']['output']>;
+  scaleReports_result?: Maybe<Scalars['String']['output']>;
+};
+
+export type ComprehensiveReportResult = {
+  __typename?: 'ComprehensiveReportResult';
+  data?: Maybe<ComprehensiveReport>;
+  success: Scalars['Boolean']['output'];
 };
 
 export type ConsulationRecord = {
@@ -290,6 +319,21 @@ export type CreateDiagnosticInput = {
   remark?: InputMaybe<Scalars['String']['input']>;
   scaleId: Scalars['Int']['input'];
   severity?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type CreateHrvEvaluationInput = {
+  effectiveEndTime: Scalars['DateTime']['input'];
+  effectiveStartTime: Scalars['DateTime']['input'];
+  id: Scalars['Int']['input'];
+  isEnable: Scalars['Int']['input'];
+  releaseTopic: Scalars['String']['input'];
+  userList: Array<Scalars['Int']['input']>;
+};
+
+export type CreateHrvEvaluationResponse = {
+  __typename?: 'CreateHrvEvaluationResponse';
+  message: Scalars['String']['output'];
+  success: Scalars['Boolean']['output'];
 };
 
 export type CreateIndividualEvaluationInput = {
@@ -424,6 +468,14 @@ export type DepartmentfCreateInput = {
   remark?: InputMaybe<Scalars['String']['input']>;
 };
 
+export type DepartmentfUpdateInput = {
+  institutionCode?: InputMaybe<Scalars['String']['input']>;
+  isEnable?: InputMaybe<Scalars['Boolean']['input']>;
+  name?: InputMaybe<Scalars['String']['input']>;
+  remark?: InputMaybe<Scalars['String']['input']>;
+  uuid?: InputMaybe<Scalars['String']['input']>;
+};
+
 export type DiagnosticPaginationInput = {
   skip: Scalars['Int']['input'];
   take: Scalars['Int']['input'];
@@ -439,8 +491,8 @@ export type EcgHrvReportInput = {
   pnn50: Scalars['Float']['input'];
   powerData: Array<Scalars['Float']['input']>;
   ratioLHF: Scalars['Float']['input'];
+  reportUuidList: Array<Scalars['String']['input']>;
   rmsssd: Scalars['Float']['input'];
-  scaleUUid: Scalars['String']['input'];
   sdann: Scalars['Float']['input'];
   sdnn: Scalars['Float']['input'];
   sdnni: Scalars['Float']['input'];
@@ -537,6 +589,17 @@ export type GetAllDepartmentEvaluation = {
   updatedAt: Scalars['DateTime']['output'];
 };
 
+export type GetAllHrvEvaluation = {
+  __typename?: 'GetAllHrvEvaluation';
+  /** Identifies the date and time when the object was created. */
+  createdAt: Scalars['DateTime']['output'];
+  data: Array<HrvEvaluation>;
+  id: Scalars['ID']['output'];
+  totalCount?: Maybe<Scalars['Int']['output']>;
+  /** Identifies the date and time when the object was last updated. */
+  updatedAt: Scalars['DateTime']['output'];
+};
+
 export type GetAllIndividualEvaluation = {
   __typename?: 'GetAllIndividualEvaluation';
   /** Identifies the date and time when the object was created. */
@@ -606,12 +669,15 @@ export type GetAllUpbringingHistory = {
 export type GetArchivesListInput = {
   page: Scalars['Int']['input'];
   pageNumber: Scalars['Int']['input'];
+  searchID: Scalars['String']['input'];
   searchName: Scalars['String']['input'];
+  searchUserName: Scalars['String']['input'];
 };
 
 export type GetArchivesListResult = {
   __typename?: 'GetArchivesListResult';
   createdAt: Scalars['DateTime']['output'];
+  id: Scalars['Int']['output'];
   realname: Scalars['String']['output'];
   reportInfo: Array<ReportInfoResult>;
   subDepartment?: Maybe<SubsidiaryDepartment>;
@@ -644,11 +710,28 @@ export type GetFactorListInput = {
   scaleType?: InputMaybe<Scalars['Int']['input']>;
 };
 
+export type GetHrvIndividualTableData = {
+  currentPage: Scalars['Int']['input'];
+  identificationCard?: InputMaybe<Scalars['String']['input']>;
+  pageNumber: Scalars['Int']['input'];
+  realname?: InputMaybe<Scalars['String']['input']>;
+  username?: InputMaybe<Scalars['String']['input']>;
+};
+
 export type GetIndividualScalesTableData = {
   currentPage: Scalars['Int']['input'];
   pageNumber: Scalars['Int']['input'];
   realname?: InputMaybe<Scalars['String']['input']>;
   scaleName?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type GetReportDataInput = {
+  currentPage: Scalars['Int']['input'];
+  endTime?: InputMaybe<Scalars['DateTime']['input']>;
+  pageNumber: Scalars['Int']['input'];
+  realName?: InputMaybe<Scalars['String']['input']>;
+  startTime?: InputMaybe<Scalars['DateTime']['input']>;
+  userName?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type GetScaleTestSearchListReturnType = {
@@ -657,13 +740,27 @@ export type GetScaleTestSearchListReturnType = {
   scaleTestSearch: Array<ScaleTestSearchList>;
 };
 
+export type GetSettingsTableData = {
+  currentPage: Scalars['Int']['input'];
+  pageNumber: Scalars['Int']['input'];
+};
+
+export type GetUserDataInput = {
+  currentPage: Scalars['Int']['input'];
+  pageNumber: Scalars['Int']['input'];
+  userId: Scalars['Int']['input'];
+};
+
 export type GetUserInformationTableData = {
   account?: InputMaybe<Scalars['String']['input']>;
   currentPage: Scalars['Int']['input'];
   departmentId?: InputMaybe<Scalars['Int']['input']>;
+  identificationCard?: InputMaybe<Scalars['String']['input']>;
   pageNumber: Scalars['Int']['input'];
   realname?: InputMaybe<Scalars['String']['input']>;
+  role?: InputMaybe<Scalars['String']['input']>;
   subDepartmentId?: InputMaybe<Scalars['Int']['input']>;
+  username?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type GrowthHistory = {
@@ -728,6 +825,44 @@ export type GrowthHistoryInput = {
   technicalSituation?: InputMaybe<Scalars['String']['input']>;
 };
 
+export type HospitalSettings = {
+  __typename?: 'HospitalSettings';
+  address?: Maybe<Scalars['String']['output']>;
+  agencyCode: Scalars['String']['output'];
+  agencyName: Scalars['String']['output'];
+  consultationHotline?: Maybe<Scalars['String']['output']>;
+  contactTelephone?: Maybe<Scalars['String']['output']>;
+  copyRight: Scalars['String']['output'];
+  /** Identifies the date and time when the object was created. */
+  createdAt: Scalars['DateTime']['output'];
+  email?: Maybe<Scalars['String']['output']>;
+  id: Scalars['ID']['output'];
+  systemName: Scalars['String']['output'];
+  /** Identifies the date and time when the object was last updated. */
+  updatedAt: Scalars['DateTime']['output'];
+  uuid: Scalars['String']['output'];
+  website?: Maybe<Scalars['String']['output']>;
+};
+
+export type HrvEvaluation = {
+  __typename?: 'HrvEvaluation';
+  createdAt?: Maybe<Scalars['DateTime']['output']>;
+  effectiveEndTime?: Maybe<Scalars['DateTime']['output']>;
+  effectiveStartTime?: Maybe<Scalars['DateTime']['output']>;
+  id?: Maybe<Scalars['Int']['output']>;
+  isEnable?: Maybe<Scalars['Boolean']['output']>;
+  realnames?: Maybe<Array<Scalars['String']['output']>>;
+  releaseTopic?: Maybe<Scalars['String']['output']>;
+  updatedAt?: Maybe<Scalars['DateTime']['output']>;
+  usersList?: Maybe<Array<Scalars['Int']['output']>>;
+};
+
+export type HrvEvaluationDetail = {
+  __typename?: 'HrvEvaluationDetail';
+  hrvEvaluationDetail: HrvEvaluation;
+  userList?: Maybe<Array<Scalars['Int']['output']>>;
+};
+
 export type HrvReportOutput = {
   __typename?: 'HrvReportOutput';
   analysis_chart?: Maybe<Scalars['String']['output']>;
@@ -751,6 +886,12 @@ export type HrvReportOutput = {
   username?: Maybe<Scalars['String']['output']>;
   usetime?: Maybe<Scalars['String']['output']>;
   uuid: Scalars['String']['output'];
+};
+
+export type HrvReportOutputData = {
+  __typename?: 'HrvReportOutputData';
+  data: Array<HrvReportOutput>;
+  totalCount: Scalars['Int']['output'];
 };
 
 export type IndividualEvaluation = {
@@ -794,7 +935,9 @@ export type Mutation = {
   __typename?: 'Mutation';
   CreateAccessory: CreatAccessoryResponse;
   CreateFatherDepartment: CreatfatherResponse;
+  UpdateFatherDepartment: UpdatefatherResponse;
   UpdateSubsidiaryDepartment: UpdateResponse;
+  addBatchUser: CreateResponse;
   addConsulationRecord: ConsulationRecord;
   addDepartmentEvaluation: DepartmentEvaluation;
   addFactor: ScaleFactor;
@@ -805,32 +948,40 @@ export type Mutation = {
   addUpbringingHistory: UpbringingHistory;
   changePassword: User;
   createAnswer: CreateScaleAnswerResponse;
-  createHrvReport: Scalars['Boolean']['output'];
+  createHrvEvaluation: CreateHrvEvaluationResponse;
+  createHrvReport: EcgResponse;
   createIndividualEvaluation: CreateResponse;
   createMergeUserScale: MergeUserScale;
   createScaleQuestion: CreateScaleQuestionResponse;
   createSubsidiaryDepartment: CreatResponse;
   deleteAccessory: Scalars['String']['output'];
-  deleteAnswer: Answer;
+  deleteAnswer: DeleteScaleQuestionResponse;
   deleteConsulationRecord: ConsulationRecord;
+  deleteDepartmentById: CreateResponse;
   deleteDepartmentEvaluation: DepartmentEvaluation;
   deleteDiagnostic: ScaleDiagnostic;
   deleteFactor: ScaleFactor;
-  deleteIndividualEvaluation: CreateResponse;
-  deleteScaleQuestionById: ScaleQuestion;
+  deleteHrvEvaluation: CreateHrvEvaluationResponse;
+  deleteReport: CreateResponse;
+  deleteReportInfo: CreateResponse;
+  deleteScaleQuestionById: DeleteScaleQuestionResponse;
+  deleteSettings: HospitalSettings;
   deleteUpbringingHistory: UpbringingHistory;
   deleteUser: User;
   deleteWarning: ScaleWarning;
-  deletesubDepartmentById: SubsidiaryDepartment;
+  deletesubDepartmentById: CreateResponse;
   login: Auth;
   refreshToken: Token;
-  saveChDetectionResult: Scalars['Boolean']['output'];
-  saveEcgHrvReport: Scalars['Boolean']['output'];
+  resetUserPass: User;
+  saveChDetectionResult: EcgResponse;
+  saveCommonScale: CommonSaveReturn;
+  saveEcgHrvReport: EcgResponse;
   saveReportQuestionChoose: Scalars['Boolean']['output'];
   saveReportQuestionChooseUseQuestionidAndAnswerid: Scalars['Boolean']['output'];
   signup: Auth;
   submitBaseInformation: Scale;
   submitScaleTypeInformation: ScaleType;
+  submitSettingsInformation: HospitalSettings;
   submitUserInformation: User;
   submitUserInformationList: UserIdList;
   updateAccessory: CreatAccessoryResponse;
@@ -844,6 +995,7 @@ export type Mutation = {
   updateTestAnalysis: Scalars['Boolean']['output'];
   updateUpbringingHistory: UpbringingHistory;
   updateUserById: User;
+  updateUserEcgState: UpdateUserEcgTestInput;
   updateWarning: ScaleWarning;
 };
 
@@ -858,9 +1010,20 @@ export type MutationCreateFatherDepartmentArgs = {
 };
 
 
+export type MutationUpdateFatherDepartmentArgs = {
+  data: DepartmentfUpdateInput;
+  id: Scalars['Int']['input'];
+};
+
+
 export type MutationUpdateSubsidiaryDepartmentArgs = {
   data: SubsidiaryDepartmentUpdateInput;
   id: Scalars['Int']['input'];
+};
+
+
+export type MutationAddBatchUserArgs = {
+  number: Scalars['String']['input'];
 };
 
 
@@ -914,6 +1077,11 @@ export type MutationCreateAnswerArgs = {
 };
 
 
+export type MutationCreateHrvEvaluationArgs = {
+  data: CreateHrvEvaluationInput;
+};
+
+
 export type MutationCreateHrvReportArgs = {
   uuid: Scalars['String']['input'];
 };
@@ -956,6 +1124,11 @@ export type MutationDeleteConsulationRecordArgs = {
 };
 
 
+export type MutationDeleteDepartmentByIdArgs = {
+  id: Scalars['Int']['input'];
+};
+
+
 export type MutationDeleteDepartmentEvaluationArgs = {
   id: Scalars['Int']['input'];
 };
@@ -971,13 +1144,28 @@ export type MutationDeleteFactorArgs = {
 };
 
 
-export type MutationDeleteIndividualEvaluationArgs = {
+export type MutationDeleteHrvEvaluationArgs = {
   id: Scalars['Int']['input'];
+};
+
+
+export type MutationDeleteReportArgs = {
+  uuid: Scalars['String']['input'];
+};
+
+
+export type MutationDeleteReportInfoArgs = {
+  uuid: Scalars['String']['input'];
 };
 
 
 export type MutationDeleteScaleQuestionByIdArgs = {
   id: Scalars['Int']['input'];
+};
+
+
+export type MutationDeleteSettingsArgs = {
+  data: Scalars['String']['input'];
 };
 
 
@@ -1011,8 +1199,18 @@ export type MutationRefreshTokenArgs = {
 };
 
 
+export type MutationResetUserPassArgs = {
+  data: Scalars['String']['input'];
+};
+
+
 export type MutationSaveChDetectionResultArgs = {
   chDetectionResultInput: ChDetectionResultInput;
+};
+
+
+export type MutationSaveCommonScaleArgs = {
+  data: CommonScaleData;
 };
 
 
@@ -1043,6 +1241,11 @@ export type MutationSubmitBaseInformationArgs = {
 
 export type MutationSubmitScaleTypeInformationArgs = {
   data: SubmitScaleTypeInformation;
+};
+
+
+export type MutationSubmitSettingsInformationArgs = {
+  data: SubmitSettingsInformation;
 };
 
 
@@ -1121,6 +1324,11 @@ export type MutationUpdateUserByIdArgs = {
 };
 
 
+export type MutationUpdateUserEcgStateArgs = {
+  userUuid: Scalars['String']['input'];
+};
+
+
 export type MutationUpdateWarningArgs = {
   data: UpdateWarningInput;
   id: Scalars['Int']['input'];
@@ -1162,19 +1370,24 @@ export type Query = {
   findAccessoryByCode?: Maybe<Array<Accessory>>;
   findAccessoryById: Accessory;
   findAccessoryPagination: PagResponse;
+  findComprehensiveReport: ComprehensiveReportResult;
   findDepartments: Array<Department>;
+  findDepartmentsByName: Array<Department>;
   findSubDepartments: Array<Subdepartment>;
   findSubOfDepartments?: Maybe<DepartmentWithSub>;
   generateQrCode: QrCodeType;
   getAllChDetectionResult: Array<ChDetectionResult>;
+  getAllConsulationRecords: GetAllConsulationRecord;
   getAllEcgHrvReport: Array<ChDetectionResult>;
-  getAllHrvReport: Array<HrvReportOutput>;
+  getAllHrvReport: HrvReportOutputData;
   getAllHrvReportOnOnePage: Array<HrvReportOutput>;
   getAllScaleTypeAndName: ScaleTypeReturnType;
   getAllSclaeQuestion: GetAllScaleQuestionReturnType;
   getAnswer: AnswerResult;
   getArchivesList: GetArchivesListReturnType;
   getBaseInformationTableData: Array<Scale>;
+  getCommonBaseInformationTableData: Array<Scale>;
+  getCommonTotalCount: Scalars['Int']['output'];
   getEducations: Array<Education>;
   getEthnicities: Array<Ethnicity>;
   getFactor: AllFactorInfo;
@@ -1183,6 +1396,8 @@ export type Query = {
   getFactorNumber: Scalars['Int']['output'];
   getFactorScaleType: Scalars['Int']['output'];
   getGrowthHistoryById?: Maybe<GrowthHistory>;
+  getHrvEvaluationDetail: HrvEvaluationDetail;
+  getHrvIndividualTableData: GetAllHrvEvaluation;
   getIndividualEvaluationDetail: IndividualEvaluationDetail;
   getIndividualScalesTableData: GetAllIndividualEvaluation;
   getQuestionByScaleName: Array<ScaleQuestion>;
@@ -1201,10 +1416,15 @@ export type Query = {
   getScaleTypeInformationToWeightlessnessReduction: GetScaleTypeInformationToWeightlessnessReduction;
   getScaleTypeTableData: Array<ScaleType>;
   getScaleTypes: Array<ScaleType>;
+  getSettingsCount: Scalars['Int']['output'];
+  getSettingsDetail: HospitalSettings;
+  getSettingsTableData: Array<HospitalSettings>;
+  getUserAllHrvReport: UserHrvReports;
   getUserById: User;
   getUserCount: Scalars['Int']['output'];
   getUserDetail: User;
   getUserInformationTableData: Array<User>;
+  getbringingHistorys: GetAllUpbringingHistory;
   hello: Scalars['String']['output'];
   helloWorld: Scalars['String']['output'];
   me: User;
@@ -1220,6 +1440,7 @@ export type Query = {
   totalCount: Scalars['Int']['output'];
   upbringingHistorys: GetAllUpbringingHistory;
   users: Array<User>;
+  verifyUserEcgTest: VerifyUserEcgTestInput;
 };
 
 
@@ -1262,6 +1483,16 @@ export type QueryFindAccessoryPaginationArgs = {
 };
 
 
+export type QueryFindComprehensiveReportArgs = {
+  hrvReport_uuid: Scalars['String']['input'];
+};
+
+
+export type QueryFindDepartmentsByNameArgs = {
+  name: Scalars['String']['input'];
+};
+
+
 export type QueryFindSubOfDepartmentsArgs = {
   data: Scalars['Int']['input'];
 };
@@ -1277,13 +1508,18 @@ export type QueryGetAllChDetectionResultArgs = {
 };
 
 
+export type QueryGetAllConsulationRecordsArgs = {
+  userId: Scalars['Int']['input'];
+};
+
+
 export type QueryGetAllEcgHrvReportArgs = {
   data: GetBaseDataInput;
 };
 
 
 export type QueryGetAllHrvReportArgs = {
-  data: GetBaseDataInput;
+  data: GetReportDataInput;
 };
 
 
@@ -1305,6 +1541,16 @@ export type QueryGetArchivesListArgs = {
 
 
 export type QueryGetBaseInformationTableDataArgs = {
+  data: GetBaseInformationTableData;
+};
+
+
+export type QueryGetCommonBaseInformationTableDataArgs = {
+  data: GetBaseInformationTableData;
+};
+
+
+export type QueryGetCommonTotalCountArgs = {
   data: GetBaseInformationTableData;
 };
 
@@ -1331,6 +1577,16 @@ export type QueryGetFactorScaleTypeArgs = {
 
 export type QueryGetGrowthHistoryByIdArgs = {
   userId: Scalars['Int']['input'];
+};
+
+
+export type QueryGetHrvEvaluationDetailArgs = {
+  id: Scalars['Int']['input'];
+};
+
+
+export type QueryGetHrvIndividualTableDataArgs = {
+  data: GetHrvIndividualTableData;
 };
 
 
@@ -1394,6 +1650,26 @@ export type QueryGetScaleTypeTableDataArgs = {
 };
 
 
+export type QueryGetSettingsCountArgs = {
+  data: GetSettingsTableData;
+};
+
+
+export type QueryGetSettingsDetailArgs = {
+  data: Scalars['Int']['input'];
+};
+
+
+export type QueryGetSettingsTableDataArgs = {
+  data: GetSettingsTableData;
+};
+
+
+export type QueryGetUserAllHrvReportArgs = {
+  data: GetUserDataInput;
+};
+
+
 export type QueryGetUserByIdArgs = {
   id: Scalars['Int']['input'];
 };
@@ -1411,6 +1687,11 @@ export type QueryGetUserDetailArgs = {
 
 export type QueryGetUserInformationTableDataArgs = {
   data: GetUserInformationTableData;
+};
+
+
+export type QueryGetbringingHistorysArgs = {
+  userId: Scalars['Int']['input'];
 };
 
 
@@ -1456,6 +1737,11 @@ export type QueryTotalCountArgs = {
 export type QueryUpbringingHistorysArgs = {
   page: UpbringPaginationInput;
   userId: Scalars['Int']['input'];
+};
+
+
+export type QueryVerifyUserEcgTestArgs = {
+  userUuid: Scalars['String']['input'];
 };
 
 export type QueryScaleIdByNameInput = {
@@ -1519,6 +1805,7 @@ export type ReportInfoResult = {
 
 export type ReportQuestionChooseInput = {
   answer: Array<AnswerInput>;
+  countTime?: InputMaybe<Scalars['String']['input']>;
   customAnswer: Array<CustomAnswerInput>;
   departmentEvaluationId?: InputMaybe<Scalars['Int']['input']>;
   individualEvaluationId?: InputMaybe<Scalars['Int']['input']>;
@@ -1551,11 +1838,13 @@ export type Scale = {
   id: Scalars['ID']['output'];
   instructions?: Maybe<Scalars['String']['output']>;
   introduction?: Maybe<Scalars['String']['output']>;
+  isCommon?: Maybe<Scalars['Boolean']['output']>;
   isEnable?: Maybe<Scalars['Boolean']['output']>;
   isFactor?: Maybe<Scalars['Boolean']['output']>;
   isSkip?: Maybe<Scalars['Boolean']['output']>;
   name: Scalars['String']['output'];
   scaleCode?: Maybe<Scalars['String']['output']>;
+  scaleType?: Maybe<ScaleType>;
   scaleTypeId?: Maybe<Scalars['Int']['output']>;
   sd?: Maybe<Scalars['Float']['output']>;
   skipRule?: Maybe<Scalars['String']['output']>;
@@ -1725,6 +2014,7 @@ export type ScaleTestSearchInput = {
 
 export type ScaleTestSearchList = {
   __typename?: 'ScaleTestSearchList';
+  countTime?: Maybe<Scalars['String']['output']>;
   createdAt: Scalars['DateTime']['output'];
   id: Scalars['ID']['output'];
   rawScore: Scalars['Int']['output'];
@@ -1742,6 +2032,8 @@ export type ScaleTestSearchList = {
   userId: Scalars['Int']['output'];
   userInfo?: Maybe<Scalars['String']['output']>;
   uuid: Scalars['String']['output'];
+  warningColor?: Maybe<Scalars['String']['output']>;
+  warningResult?: Maybe<Scalars['String']['output']>;
 };
 
 export type ScaleType = {
@@ -1804,7 +2096,10 @@ export type ScaleWithType = {
 
 export type SignupInput = {
   departmentId?: InputMaybe<Scalars['Int']['input']>;
+  gender?: InputMaybe<Scalars['Int']['input']>;
+  identificationCard?: InputMaybe<Scalars['String']['input']>;
   password: Scalars['String']['input'];
+  realname?: InputMaybe<Scalars['String']['input']>;
   username: Scalars['String']['input'];
 };
 
@@ -1845,6 +2140,20 @@ export type SubmitScaleTypeInformation = {
   name: Scalars['String']['input'];
 };
 
+export type SubmitSettingsInformation = {
+  address?: InputMaybe<Scalars['String']['input']>;
+  agencyCode: Scalars['String']['input'];
+  agencyName: Scalars['String']['input'];
+  consultationHotline?: InputMaybe<Scalars['String']['input']>;
+  contactTelephone?: InputMaybe<Scalars['String']['input']>;
+  copyRight: Scalars['String']['input'];
+  email?: InputMaybe<Scalars['String']['input']>;
+  id?: InputMaybe<Scalars['Int']['input']>;
+  systemName: Scalars['String']['input'];
+  uuid?: InputMaybe<Scalars['String']['input']>;
+  website?: InputMaybe<Scalars['String']['input']>;
+};
+
 export type SubmitUserInfo = {
   realname: Scalars['String']['input'];
   telephone: Scalars['String']['input'];
@@ -1854,22 +2163,27 @@ export type SubmitUserInfo = {
 export type SubmitUserInformation = {
   address?: InputMaybe<Scalars['String']['input']>;
   age?: InputMaybe<Scalars['Int']['input']>;
+  birthDate?: InputMaybe<Scalars['DateTime']['input']>;
+  birthPlace?: InputMaybe<Scalars['String']['input']>;
+  bloodType?: InputMaybe<Scalars['Int']['input']>;
+  career?: InputMaybe<Scalars['Int']['input']>;
   createdAt?: InputMaybe<Scalars['DateTime']['input']>;
   departmentId?: InputMaybe<Scalars['Int']['input']>;
   educationId?: InputMaybe<Scalars['Int']['input']>;
   email?: InputMaybe<Scalars['String']['input']>;
   ethnicityId?: InputMaybe<Scalars['Int']['input']>;
+  familyDescription?: InputMaybe<Scalars['String']['input']>;
   gender?: InputMaybe<Scalars['Int']['input']>;
+  householdType?: InputMaybe<Scalars['Int']['input']>;
   id?: InputMaybe<Scalars['Int']['input']>;
   identificationCard?: InputMaybe<Scalars['String']['input']>;
   introduction?: InputMaybe<Scalars['String']['input']>;
   isAdmin?: InputMaybe<Scalars['Boolean']['input']>;
   isEnable?: InputMaybe<Scalars['Boolean']['input']>;
-  jobNumber?: InputMaybe<Scalars['Int']['input']>;
   marital?: InputMaybe<Scalars['Int']['input']>;
   nationality?: InputMaybe<Scalars['String']['input']>;
-  password: Scalars['String']['input'];
-  qualification?: InputMaybe<Scalars['String']['input']>;
+  nativePlace?: InputMaybe<Scalars['String']['input']>;
+  password?: InputMaybe<Scalars['String']['input']>;
   realname: Scalars['String']['input'];
   remark?: InputMaybe<Scalars['String']['input']>;
   role: Role;
@@ -1905,6 +2219,7 @@ export type SubsidiaryDepartmentUpdateInput = {
   isEnable: Scalars['Boolean']['input'];
   name: Scalars['String']['input'];
   remark?: InputMaybe<Scalars['String']['input']>;
+  uuid?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type Token = {
@@ -1976,7 +2291,7 @@ export type UpdateDiagnosticInput = {
 
 export type UpdateResponse = {
   __typename?: 'UpdateResponse';
-  id: Scalars['Int']['output'];
+  id?: Maybe<Scalars['Int']['output']>;
   message?: Maybe<Scalars['String']['output']>;
   new?: Maybe<TSubsidiaryDepartment>;
   success?: Maybe<Scalars['Boolean']['output']>;
@@ -2000,6 +2315,12 @@ export type UpdateUpbringingHistoryInput = {
   startAge: Scalars['Int']['input'];
 };
 
+export type UpdateUserEcgTestInput = {
+  __typename?: 'UpdateUserEcgTestInput';
+  msg: Scalars['String']['output'];
+  success: Scalars['Boolean']['output'];
+};
+
 export type UpdateWarningInput = {
   isEnable: Scalars['Boolean']['input'];
   remark?: InputMaybe<Scalars['String']['input']>;
@@ -2010,28 +2331,40 @@ export type UpdateWarningInput = {
   warningType: Scalars['Int']['input'];
 };
 
+export type UpdatefatherResponse = {
+  __typename?: 'UpdatefatherResponse';
+  message?: Maybe<Scalars['String']['output']>;
+  success?: Maybe<Scalars['Boolean']['output']>;
+  update?: Maybe<Department>;
+};
+
 export type User = {
   __typename?: 'User';
   address?: Maybe<Scalars['String']['output']>;
   age?: Maybe<Scalars['Int']['output']>;
+  birthDate?: Maybe<Scalars['DateTime']['output']>;
+  birthPlace?: Maybe<Scalars['String']['output']>;
+  bloodType?: Maybe<Scalars['Int']['output']>;
+  career?: Maybe<Scalars['Int']['output']>;
   /** Identifies the date and time when the object was created. */
   createdAt: Scalars['DateTime']['output'];
   departmentId?: Maybe<Scalars['Int']['output']>;
   educationId?: Maybe<Scalars['Int']['output']>;
   email?: Maybe<Scalars['String']['output']>;
   ethnicityId?: Maybe<Scalars['Int']['output']>;
+  familyDescription?: Maybe<Scalars['String']['output']>;
   gender?: Maybe<Scalars['Int']['output']>;
+  householdType?: Maybe<Scalars['Int']['output']>;
   id: Scalars['ID']['output'];
   identificationCard?: Maybe<Scalars['String']['output']>;
   introduction?: Maybe<Scalars['String']['output']>;
   isAdmin?: Maybe<Scalars['Boolean']['output']>;
   isDelete: Scalars['Boolean']['output'];
   isEnable?: Maybe<Scalars['Boolean']['output']>;
-  jobNumber?: Maybe<Scalars['Int']['output']>;
   marital?: Maybe<Scalars['Int']['output']>;
   nationality?: Maybe<Scalars['String']['output']>;
+  nativePlace?: Maybe<Scalars['String']['output']>;
   password: Scalars['String']['output'];
-  qualification?: Maybe<Scalars['String']['output']>;
   realname: Scalars['String']['output'];
   remark?: Maybe<Scalars['String']['output']>;
   role: Role;
@@ -2048,6 +2381,25 @@ export type User = {
 export type UserIdList = {
   __typename?: 'UserIdList';
   idList: Array<Scalars['Int']['output']>;
+};
+
+export type VerifyUserEcgTestInput = {
+  __typename?: 'VerifyUserEcgTestInput';
+  isTest: Scalars['Boolean']['output'];
+  msg: Scalars['String']['output'];
+  success: Scalars['Boolean']['output'];
+};
+
+export type DeleteScaleQuestionResponse = {
+  __typename?: 'deleteScaleQuestionResponse';
+  message: Scalars['String']['output'];
+  success: Scalars['Boolean']['output'];
+};
+
+export type EcgResponse = {
+  __typename?: 'ecgResponse';
+  message: Scalars['String']['output'];
+  success: Scalars['Boolean']['output'];
 };
 
 export type GetFatcorInformationToWeightlessnessReduction = {
@@ -2091,6 +2443,12 @@ export type TSubsidiaryDepartment = {
   uuid: Scalars['String']['output'];
 };
 
+export type UserHrvReports = {
+  __typename?: 'userHrvReports';
+  reports?: Maybe<Array<HrvReportOutput>>;
+  totalCount: Scalars['Int']['output'];
+};
+
 export type GetEvaluationsQueryVariables = Exact<{
   userId: Scalars['Int']['input'];
 }>;
@@ -2117,7 +2475,7 @@ export type SaveHrvReportMutationVariables = Exact<{
 }>;
 
 
-export type SaveHrvReportMutation = { __typename?: 'Mutation', saveEcgHrvReport: boolean };
+export type SaveHrvReportMutation = { __typename?: 'Mutation', saveEcgHrvReport: { __typename?: 'ecgResponse', success: boolean, message: string } };
 
 export type LoginMutationVariables = Exact<{
   username: Scalars['String']['input'];
@@ -2131,5 +2489,5 @@ export type LoginMutation = { __typename?: 'Mutation', login: { __typename?: 'Au
 export const GetEvaluationsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"getEvaluations"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"userId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"scaleEvaluations"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"scaleName"},"value":{"kind":"StringValue","value":"","block":false}}]}},{"kind":"Argument","name":{"kind":"Name","value":"pagination"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"page"},"value":{"kind":"IntValue","value":"1"}},{"kind":"ObjectField","name":{"kind":"Name","value":"pageSize"},"value":{"kind":"IntValue","value":"1000"}}]}},{"kind":"Argument","name":{"kind":"Name","value":"userId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"userId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"data"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"scaleName"}},{"kind":"Field","name":{"kind":"Name","value":"uuid"}},{"kind":"Field","name":{"kind":"Name","value":"individualEvaluationId"}},{"kind":"Field","name":{"kind":"Name","value":"departmentEvaluationId"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"isTest"}},{"kind":"Field","name":{"kind":"Name","value":"releaseType"}},{"kind":"Field","name":{"kind":"Name","value":"effectiveStartTime"}},{"kind":"Field","name":{"kind":"Name","value":"effectiveEndTime"}},{"kind":"Field","name":{"kind":"Name","value":"isEnable"}},{"kind":"Field","name":{"kind":"Name","value":"skipRule"}},{"kind":"Field","name":{"kind":"Name","value":"isSkip"}}]}}]}}]}}]} as unknown as DocumentNode<GetEvaluationsQuery, GetEvaluationsQueryVariables>;
 export const GetScaleQuestionsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"getScaleQuestions"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"scaleId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"getScaleQuestionByScaleUUIDWithTitleAndInstructions"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"uuid"},"value":{"kind":"Variable","name":{"kind":"Name","value":"scaleId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"ScaleQuestionRender"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"answer"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"answerGroupCode"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"uuid"}},{"kind":"Field","name":{"kind":"Name","value":"picture"}}]}},{"kind":"Field","name":{"kind":"Name","value":"answerGroupCode"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"questionImg"}},{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"id"}}]}},{"kind":"Field","name":{"kind":"Name","value":"title"}}]}}]}}]} as unknown as DocumentNode<GetScaleQuestionsQuery, GetScaleQuestionsQueryVariables>;
 export const SaveReportDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"saveReport"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"report"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ReportQuestionChooseUseQuestionidAndAnsweridInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"saveReportQuestionChooseUseQuestionidAndAnswerid"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"reportQuestionChooseUseQuestionidAndAnsweridInput"},"value":{"kind":"Variable","name":{"kind":"Name","value":"report"}}}]}]}}]} as unknown as DocumentNode<SaveReportMutation, SaveReportMutationVariables>;
-export const SaveHrvReportDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"saveHrvReport"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"report"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"EcgHrvReportInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"saveEcgHrvReport"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"ecgHrvReportInput"},"value":{"kind":"Variable","name":{"kind":"Name","value":"report"}}}]}]}}]} as unknown as DocumentNode<SaveHrvReportMutation, SaveHrvReportMutationVariables>;
+export const SaveHrvReportDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"saveHrvReport"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"report"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"EcgHrvReportInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"saveEcgHrvReport"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"ecgHrvReportInput"},"value":{"kind":"Variable","name":{"kind":"Name","value":"report"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"success"}},{"kind":"Field","name":{"kind":"Name","value":"message"}}]}}]}}]} as unknown as DocumentNode<SaveHrvReportMutation, SaveHrvReportMutationVariables>;
 export const LoginDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"login"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"username"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"password"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"login"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"data"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"username"},"value":{"kind":"Variable","name":{"kind":"Name","value":"username"}}},{"kind":"ObjectField","name":{"kind":"Name","value":"password"},"value":{"kind":"Variable","name":{"kind":"Name","value":"password"}}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"accessToken"}},{"kind":"Field","name":{"kind":"Name","value":"user"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"isAdmin"}},{"kind":"Field","name":{"kind":"Name","value":"username"}},{"kind":"Field","name":{"kind":"Name","value":"realname"}}]}},{"kind":"Field","name":{"kind":"Name","value":"role"}}]}}]}}]} as unknown as DocumentNode<LoginMutation, LoginMutationVariables>;
