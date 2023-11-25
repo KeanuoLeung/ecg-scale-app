@@ -60,6 +60,7 @@ setupIonicReact();
 // let ecgResults: EcgResult[] = demo.ecgResults;
 let ecgRawDatas: EcgRawData[] = [];
 let ecgResults: EcgResult[] = [];
+(window as any).ecgRawDatas = ecgRawDatas;
 
 (window as any).db = db;
 
@@ -77,6 +78,7 @@ const App: React.FC = () => {
   const [reportUUIDs, setReportUUIDs] = useState<string[]>([]);
   const [showCancel, setShowCancel] = useState(false);
   const [heartRate, setHeartRate] = useState('---');
+  const [nearRawDatas, setNearRawDatas] = useState<EcgRawData[]>([]);
 
   function log(str: string) {
     setDebugMessages((msgs) => [...msgs.slice(0, 10), str]);
@@ -114,6 +116,8 @@ const App: React.FC = () => {
       });
       EcgPlugin.addListener('ecgRawData', (data) => {
         ecgRawDatas.push(data);
+
+        console.log('raw data', data);
         // fetch('http://192.168.1.103:3000/log', {
         //   method: 'POST',
         //   headers: { 'Content-Type': 'application/json' },
@@ -221,6 +225,7 @@ const App: React.FC = () => {
         reportUUIDs: reportUUIDs,
         addReportUUIDs: (id: string) => setReportUUIDs((ids) => [...ids, id]),
         bpm: heartRate,
+        nearRawData: nearRawDatas,
       }}
     >
       <div>

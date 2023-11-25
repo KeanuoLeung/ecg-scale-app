@@ -100,15 +100,20 @@ function EvaluationList() {
   }, [list]);
 
   useEffect(() => {
+    let syncing = false;
     // 定时同步
     async function sync() {
+      if (syncing) {
+        return;
+      }
+      syncing = true;
       const reports = (await db.reports.toArray()).filter(
         (resport) => !resport.synced
       );
 
       const ecgs = (await db.ecgRecords.toArray()).filter((ecg) => !ecg.synced);
 
-      console.log('sync reports', reports);
+      console.log('sync reports', await db.ecgRecords.toArray());
 
       for (const report of reports) {
         const success = await saveReport({
@@ -118,6 +123,7 @@ function EvaluationList() {
           phone: report.phone ?? '',
           uuid: report.uuid ?? '',
         });
+        console.log('save report', success);
         if (success) {
           report.id && db.reports.update(report.id, { synced: true });
         }
@@ -158,18 +164,16 @@ function EvaluationList() {
             value: chDetectionResult,
             reportUUIDList: reportUUIDList ?? [],
           });
-          const c = await saveHrvReport({
+          await saveHrvReport({
             ...hrvReport,
             reportUuidList: reportUUIDList ?? [],
             uuid: _uuid,
             userId: userId,
           });
-          if (c) {
-            console.log('hihi');
-            id && db.ecgRecords.update(id, { synced: true });
-          }
+          id && db.ecgRecords.update(id, { synced: true });
         }
       }
+      syncing = false;
     }
     sync();
     setInterval(() => {

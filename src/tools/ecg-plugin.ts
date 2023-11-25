@@ -19,6 +19,7 @@ export type EcgDevice = {
   reportUUIDs: string[];
   addReportUUIDs: (string: string) => void;
   bpm: string;
+  nearRawData: EcgRawData[];
 };
 
 export type EcgRawData = { time: number; isLost: boolean; data: number[] };
@@ -67,6 +68,7 @@ export const EcgDeviceContext = createContext<EcgDevice>({
   reportUUIDs: [],
   addReportUUIDs: () => void 0,
   bpm: '',
+  nearRawData: [],
 });
 
 type EcgPlugin = {

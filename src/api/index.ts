@@ -113,7 +113,7 @@ async function saveReport(
     mutation: SAVE_REPORT,
     variables: { report },
   });
-  return result.data?.saveReportQuestionChooseUseQuestionidAndAnswerid;
+  return result.data;
 }
 
 async function saveHrvReport(report: EcgHrvReportInput) {
@@ -150,7 +150,7 @@ async function saveOriginalCsv(props: {
   formdata.append('file', file);
   formdata.append('reportUuidList', JSON.stringify(props.reportUUIDList));
 
-  fetch(localStorage.getItem('endpoint') + '/ecg/upload', {
+  await fetch(localStorage.getItem('endpoint') + '/ecg/upload', {
     method: 'POST',
     body: formdata,
     redirect: 'follow',

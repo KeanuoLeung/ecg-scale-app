@@ -2,6 +2,7 @@ import React, { useContext, useEffect } from 'react';
 import { IonPage, useIonViewDidLeave } from '@ionic/react';
 import { EcgDeviceContext } from '../../tools/ecg-plugin';
 import { useHistory } from 'react-router';
+import ECGChart from '../../components/Chart';
 
 function EcgOnly() {
   const a = 'hi';
@@ -14,6 +15,7 @@ function EcgOnly() {
     stopMonitor,
     cancelMonitor,
     addReportUUIDs: addScaleUUIDs,
+    nearRawData,
     bpm,
   } = useContext(EcgDeviceContext);
 
@@ -22,6 +24,8 @@ function EcgOnly() {
       cancelMonitor();
     }
   });
+
+  console.log('near raw datas', nearRawData);
 
   useEffect(() => {
     window.addEventListener('stop-monitor', () => {
@@ -46,9 +50,10 @@ function EcgOnly() {
               border: '2px solid #000',
             }}
           >
-            当前心率：{bpm}
+            当前心率!：{bpm}
           </div>
         </div>
+        <ECGChart />
       </div>
     </IonPage>
   );
