@@ -49,7 +49,7 @@ function Login() {
           className="save-button"
           style={{ marginTop: 40 }}
           onClick={async () => {
-            console.log(username, password);
+            
             const result = await login(username, password);
             localStorage.setItem('token', result?.accessToken);
             await localforage.setItem('user', result);

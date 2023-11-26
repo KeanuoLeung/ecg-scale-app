@@ -145,7 +145,7 @@ async function saveOriginalCsv(props: {
     [new Blob([props.value])],
     `${props.time}_${props.userId}_${props.scaleId}_${props.uuid}_${props.type}.csv`
   );
-  console.log('this is file', file);
+  
   const formdata = new FormData();
   formdata.append('file', file);
   formdata.append('reportUuidList', JSON.stringify(props.reportUUIDList));

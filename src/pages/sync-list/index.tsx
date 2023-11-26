@@ -42,7 +42,7 @@ function SyncList() {
   const [list, setList] = useState<any[]>([]);
   const [evaluations, setEvalutions] = useState<Evaluation[]>([]);
   const [evalist, refresh] = useEvaList();
-  console.log(list);
+  
   useEffect(() => {
     async function run() {
       const reports = await db.reports.toArray();
@@ -58,7 +58,7 @@ function SyncList() {
     run();
   }, []);
 
-  console.log('evalist', evalist);
+  
 
   return (
     <IonPage style={{ overflow: 'scroll' }}>

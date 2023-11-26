@@ -104,6 +104,7 @@ type EcgPlugin = {
     eventName: 'ecgResult',
     listener: (data: EcgResult) => void
   ): void;
+  addListener(eventName: 'battery', listener: (data: any) => void): void;
   removeAllListeners(): void;
 };
 

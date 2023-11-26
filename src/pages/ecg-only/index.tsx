@@ -3,6 +3,7 @@ import { IonPage, useIonViewDidLeave } from '@ionic/react';
 import { EcgDeviceContext } from '../../tools/ecg-plugin';
 import { useHistory } from 'react-router';
 import ECGChart from '../../components/Chart';
+import './only.css';
 
 function EcgOnly() {
   const a = 'hi';
@@ -25,32 +26,49 @@ function EcgOnly() {
     }
   });
 
-  console.log('near raw datas', nearRawData);
-
   useEffect(() => {
     window.addEventListener('stop-monitor', () => {
       history.goBack();
     });
+
+    const time = Number(localStorage.getItem('defaulttime') ?? '10');
+
+    const start = Date.now();
+
+    const inter = setInterval(() => {
+      const duration = Math.floor((Date.now() - start) / 1000 / 60);
+      console.log('duration', duration, time);
+      if (duration >= time) {
+        const event = new CustomEvent('out-stop');
+        window.dispatchEvent(event);
+        clearInterval(inter);
+      }
+    }, 1000);
+
+    return () => {
+      clearInterval(inter);
+    };
   }, []);
 
   return (
     <IonPage>
       <div className="list">
-        <div className="list-title">
+        <div className="only-title">
           <span>❤️ 心率变异性测试中...</span>
         </div>
         <div>
           <div
             style={{
-              height: '100px',
+              marginTop: 30,
               background: '#fff',
               borderRadius: 15,
-              padding: 20,
-              fontSize: '36px',
-              border: '2px solid #000',
+              padding: '6px',
+              fontSize: '20px',
+              fontWeight: 'bold',
+              marginBottom: '16px',
             }}
           >
-            当前心率!：{bpm}
+            当前心率：<span style={{ color: 'green' }}>{bpm}</span>
           </div>
         </div>
         <ECGChart />

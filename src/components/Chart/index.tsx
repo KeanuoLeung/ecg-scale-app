@@ -1,94 +1,145 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { EcgRawData } from '../../tools/ecg-plugin';
+import Bg from './bg';
+
+type EcgRawData = {
+  time: number;
+  isLost: boolean;
+  data: number[];
+};
+
+let data: number[] = [];
+
+let index = 0;
 
 const ECGChart = () => {
-  const [data, setData] = useState<EcgRawData[]>([]);
-
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
     let stoped = false;
-    let frame = 0;
-    let prevStamp = 0;
+    let x = 0;
+    let prevIndex = 0;
+
+    const canvas = canvasRef.current;
+    if (!canvas) {
+      return;
+    }
+    let y = canvas.height / 2;
+    let row = 0;
+    const ratio = -0.3;
+
+    const ctx = canvas.getContext('2d');
+    // 设置画布尺寸
+    const WIDTH = window.innerWidth;
+    canvas.width = WIDTH - 40;
+    canvas.height = 500;
+
+    if (!ctx) {
+      return;
+    }
+    let prevFrame = Date.now();
     function animate() {
-      requestAnimationFrame(() => {
-        if ((window as any).ecgRawDatas && (window as any).ecgRawDatas.length) {
-          const d = (window as any).ecgRawDatas.slice(
-            Math.max(0, (window as any).ecgRawDatas.length - 50),
-            (window as any).ecgRawDatas.length
+      setTimeout(() => {
+        console.log('animate 🍺');
+        if (!canvas || !ctx) {
+          return;
+        }
+        if ((window as any).rawPoints && (window as any).rawPoints.length) {
+          if ((window as any).rawPoints.length > 1000) {
+            (window as any).rawPoints = (window as any).rawPoints.slice(
+              prevIndex,
+              (window as any).rawPoints.length
+            );
+            index = 0;
+            prevIndex = 0;
+          }
+          data = (window as any).rawPoints;
+          console.log(
+            'animate',
+            `prev: ${prevIndex} cur: ${index}`,
+            data.length,
+            `frame duration: ${Date.now() - prevFrame}`
           );
-          console.log('latest timestamp', d[d.length - 1].time);
-          d[d.length - 1].data = d[d.length - 1].data.slice(
-            0,
-            Math.floor(frame / 2)
-          );
-
-          if (frame < 20) {
-            frame++;
-          }
-          if (d[d.length - 1].time !== prevStamp) {
-            frame = 0;
-          }
-
-          console.log('run run!~', frame, Math.floor(frame / 2));
-          const data: EcgRawData[] = d;
-          prevStamp = d[d.length - 1].time;
-
-          const canvas = canvasRef.current;
-          if (!canvas) {
-            return;
-          }
-          const ctx = canvas.getContext('2d');
-
-          if (!ctx) {
-            return;
-          }
-
-          // 设置画布尺寸
-          canvas.width = 1000;
-          canvas.height = 500;
-
+          prevFrame = Date.now();
           // 解析数据
-          const points = data.map((row) => {
-            const { time, isLost, data } = row;
-            return { time, isLost, data: data.map(Number) };
-          });
 
           // 绘制心电图曲线
-          let x = 0;
-          let y = canvas.height / 2;
+          let prevX = x,
+            prevY = y;
+          for (let i = prevIndex; i < index; i++) {
+            const value = data[i];
+            x += 0.7;
+            y = canvas.height / 2 - value;
 
-          ctx.beginPath();
-          ctx.moveTo(x, y);
+            if (x > WIDTH) {
+              x = 0;
+              prevX = 0;
+              ctx.moveTo(0, y);
+              if (row === 0) {
+                row = 1;
+              } else {
+                row = 0;
+              }
+            } else {
+              // ctx.clearRect(0, 0, 1000, 500);
+              const diff = row === 0 ? 200 : 400;
+              ctx.clearRect(x, row * 250, 10, 250);
+              ctx.beginPath();
+              ctx.moveTo(prevX, prevY * ratio + diff);
+              ctx.lineTo(x, y * ratio + diff);
+              (prevX = x), (prevY = y);
+              ctx.lineWidth = 3;
+              ctx.stroke();
+            }
+            prevX = x;
+            prevY = y;
+          }
+          ctx.strokeStyle = 'green';
 
-          points.forEach((row) => {
-            row.data.forEach((value) => {
-              x += 1;
-              y = canvas.height / 2 - value;
-
-              ctx.lineTo(x, y);
-            });
-          });
-
-          ctx.strokeStyle = 'red';
-          ctx.lineWidth = 2;
-          ctx.stroke();
+          prevIndex = index;
+          index = Math.min(index + 20, (window as any).rawPoints.length);
         }
 
         if (stoped) {
           return;
         }
         animate();
-      });
+      }, 50);
     }
     animate();
 
     return () => {
       stoped = true;
+      data = [];
+      (window as any).rawPoints = [];
     };
   }, []);
 
-  return <canvas ref={canvasRef}></canvas>;
+  return (
+    <div style={{ position: 'relative', marginTop: 0 }}>
+      <canvas
+        style={{ position: 'absolute', top: 0, left: 0, zIndex: 30 }}
+        ref={canvasRef}
+      ></canvas>
+      <div style={{ position: 'absolute', top: 0, left: 0, zIndex: 10 }}>
+        <Bg />
+      </div>
+      <div
+        style={{
+          position: 'absolute',
+          top: 10,
+          left: '50%',
+          transform: 'translateX(-50%)',
+          zIndex: 40,
+          fontSize: '16px',
+          background: '#ddd',
+          padding: '3px 5px',
+          opacity: 0.8,
+        }}
+      >
+        增益：10.0mm/mv 时间基准25mm/s
+      </div>
+    </div>
+  );
 };
 
 export default ECGChart;

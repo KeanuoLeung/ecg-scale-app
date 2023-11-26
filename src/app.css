@@ -76,7 +76,7 @@
   display: flex;
   font-weight: bold;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   margin-left: 12px;
 }
 
@@ -87,4 +87,8 @@
 .heart-rate {
   align-self: center;
   font-size: 36px;
+}
+
+.pid {
+  font-size: 12px;
 }

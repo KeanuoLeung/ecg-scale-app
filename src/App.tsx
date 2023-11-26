@@ -53,6 +53,7 @@ import EcgOnly from './pages/ecg-only';
 import { db } from './db';
 import localforage from 'localforage';
 import { UserInfo } from './api';
+import TimeSet from './pages/time-set';
 
 setupIonicReact();
 
@@ -61,8 +62,11 @@ setupIonicReact();
 let ecgRawDatas: EcgRawData[] = [];
 let ecgResults: EcgResult[] = [];
 (window as any).ecgRawDatas = ecgRawDatas;
+(window as any).rawPoints = [];
 
 (window as any).db = db;
+
+(window as any).heart = '-';
 
 const App: React.FC = () => {
   const [deviceState, setDeviceState] =
@@ -77,8 +81,10 @@ const App: React.FC = () => {
   const [timeShow, setTimeShow] = useState('00:00');
   const [reportUUIDs, setReportUUIDs] = useState<string[]>([]);
   const [showCancel, setShowCancel] = useState(false);
-  const [heartRate, setHeartRate] = useState('---');
+  const [heartRate, setHeartRate] = useState('-');
   const [nearRawDatas, setNearRawDatas] = useState<EcgRawData[]>([]);
+  const [curShowPid, setCurShowPid] = useState('');
+  const [battery, setBattery] = useState<Record<string, number>>({});
 
   function log(str: string) {
     setDebugMessages((msgs) => [...msgs.slice(0, 10), str]);
@@ -114,10 +120,14 @@ const App: React.FC = () => {
           resolve(true);
         }
       });
+      EcgPlugin.addListener('battery', (data) => {
+        console.log('battery', data);
+        setBattery((batt) => ({ ...batt, [data.pid]: data.battery }));
+      });
       EcgPlugin.addListener('ecgRawData', (data) => {
         ecgRawDatas.push(data);
+        (window as any).rawPoints.push(...data.data);
 
-        console.log('raw data', data);
         // fetch('http://192.168.1.103:3000/log', {
         //   method: 'POST',
         //   headers: { 'Content-Type': 'application/json' },
@@ -126,6 +136,8 @@ const App: React.FC = () => {
       });
       EcgPlugin.addListener('heartRate', (data) => {
         setHeartRate(data.heartRate > 0 ? String(data.heartRate) : '-');
+        (window as any).heart =
+          data.heartRate > 0 ? String(data.heartRate) : '-';
       });
       EcgPlugin.addListener('ecgResult', (data) => {
         ecgResults.push(data);
@@ -146,6 +158,7 @@ const App: React.FC = () => {
       }, 300);
       const listener = (e: any) => {
         setConnecting(true);
+        setCurShowPid(e.value.pid);
         monitorDevice(e.value.pid).then((res) => {
           setConnecting(false);
           setShowDeviceList(false);
@@ -211,7 +224,67 @@ const App: React.FC = () => {
 
   const [present] = useIonToast();
 
-  console.log('[scale uuids]', reportUUIDs);
+  async function stop(fromEvent = false) {
+    console.log('this is stop', fromEvent);
+    try {
+      if (deviceState === 'online') {
+        const result = await stopMonitor();
+        const { ecgRawDatas, ecgResults, hrvReport } = result;
+        db.ecgRecords.add({
+          reportUUIDList: reportUUIDs,
+          originalEcgData: makeArrayCsv(ecgRawDatas ?? []),
+          chDetectionResult: makeArrayCsv(ecgResults ?? []),
+          hrvReport,
+          timestamp: Date.now(),
+          synced: false,
+          userId:
+            Number((await localforage.getItem<UserInfo>('user'))?.user?.id) ??
+            0,
+        });
+        const event = new CustomEvent('stop-monitor');
+        window.dispatchEvent(event);
+        // 上报心电数据
+      }
+    } catch (e) {
+      if (fromEvent) {
+        alert('我们还没有收集到足够的心电数据，请稍后手动停止');
+        return;
+      }
+      present({
+        message: '请稍等，我们还没有收集到足够的心电数据',
+        duration: 1500,
+        position: 'top',
+      });
+    }
+  }
+
+  useEffect(() => {
+    const lis = () => {
+      stop(true);
+    };
+    window.addEventListener('out-stop', lis);
+
+    return () => {
+      window.removeEventListener('out-stop', lis);
+    };
+  }, [deviceState]);
+
+  useEffect(() => {
+    let timer: any;
+    if (deviceState === 'online') {
+      timer = setTimeout(() => {
+        if ((window as any).heart === '-') {
+          alert('未采集到心电数据，请检查心电贴');
+        }
+      }, 1000 * 30);
+    }
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [deviceState]);
+
+  console.log('this is device state', deviceState);
 
   return (
     <EcgDeviceContext.Provider
@@ -252,6 +325,9 @@ const App: React.FC = () => {
               </Route>
               <Route exact path="/sync-list">
                 <SyncList />
+              </Route>
+              <Route exact path="/time-set">
+                <TimeSet />
               </Route>
               <Route exact path="/">
                 <Redirect to="/eva-list" />
@@ -296,36 +372,7 @@ const App: React.FC = () => {
                   setShowCancel(false);
                 }, 1000);
                 if (showCancel) {
-                  try {
-                    if (deviceState === 'online') {
-                      const result = await stopMonitor();
-                      const { ecgRawDatas, ecgResults, hrvReport } = result;
-                      db.ecgRecords.add({
-                        reportUUIDList: reportUUIDs,
-                        originalEcgData: makeArrayCsv(ecgRawDatas ?? []),
-                        chDetectionResult: makeArrayCsv(ecgResults ?? []),
-                        hrvReport,
-                        timestamp: Date.now(),
-                        synced: false,
-                        userId:
-                          Number(
-                            (await localforage.getItem<UserInfo>('user'))?.user
-                              ?.id
-                          ) ?? 0,
-                      });
-                      const event = new CustomEvent('stop-monitor');
-                      window.dispatchEvent(event);
-                      // 上报心电数据
-                      console.log('心电数据', result);
-                    }
-                  } catch (e) {
-                    present({
-                      message: '请稍等，我们还没有收集到足够的心电数据',
-                      duration: 1500,
-                      position: 'top',
-                    });
-                    console.log('something went wrong', e);
-                  }
+                  stop();
                 }
               }}
             >
@@ -337,6 +384,10 @@ const App: React.FC = () => {
                   <div className="ecg-status-right">
                     <div className="ecg-status-bpm">{heartRate}bpm</div>
                     <div className="ecg-status-bpm">{timeShow}</div>
+                    <div className="pid">{curShowPid}</div>
+                    <div className="pid" style={{ marginLeft: -4 }}>
+                      🔋{battery[curShowPid]}%
+                    </div>
                   </div>
                 </>
               )}

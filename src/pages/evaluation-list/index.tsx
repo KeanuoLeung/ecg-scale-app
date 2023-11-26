@@ -67,10 +67,10 @@ function EvaluationList() {
 
   const checkDisabled = async () => {
     const reportsToUpload = await db.reports.toArray();
-    console.log('reportsToUpload', reportsToUpload, list);
+    
     const result = [];
     const now = Date.now();
-    console.log('all list', list);
+    
     for (const scale of list) {
       if (
         scale.releaseType === ReleaseType.SINGLE &&
@@ -86,7 +86,7 @@ function EvaluationList() {
         result.push(scale.uuid ?? '');
       }
     }
-    console.log('disabled reports', disabledReports);
+    
     setDisabledReports(result);
   };
 
@@ -113,7 +113,7 @@ function EvaluationList() {
 
       const ecgs = (await db.ecgRecords.toArray()).filter((ecg) => !ecg.synced);
 
-      console.log('sync reports', await db.ecgRecords.toArray());
+      
 
       for (const report of reports) {
         const success = await saveReport({
@@ -123,7 +123,7 @@ function EvaluationList() {
           phone: report.phone ?? '',
           uuid: report.uuid ?? '',
         });
-        console.log('save report', success);
+        
         if (success) {
           report.id && db.reports.update(report.id, { synced: true });
         }
@@ -184,13 +184,13 @@ function EvaluationList() {
 
     localforage.getItem<UserInfo>('user').then((res) => {
       setUserName(res?.user?.realname ?? '用户');
-      console.log('user', res?.user);
+      
       setUserType((res?.role as any) ?? 'ADMIN');
     });
   }, []);
 
-  console.log('disabled reports', disabledReports);
-  console.log('eva list', list);
+  
+  
   return (
     <IonPage style={{ overflow: 'scroll' }}>
       <IonActionSheet
@@ -271,6 +271,16 @@ function EvaluationList() {
             handler: () => {
               // TODO: toast
               history.push('/sync-list');
+            },
+          },
+          {
+            text: '设置测试时间',
+            data: {
+              action: 'time-set',
+            },
+            handler: () => {
+              // TODO: toast
+              history.push('/time-set');
             },
           },
           {

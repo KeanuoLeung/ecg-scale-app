@@ -1,0 +1,10 @@
+.only-title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f4fbf8;
+  margin: -20px;
+  padding: 20px;
+  font-size: 20px;
+  font-weight: bold;
+}

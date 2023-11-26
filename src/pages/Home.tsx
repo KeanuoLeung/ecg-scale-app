@@ -69,7 +69,7 @@ const Home: React.FC = () => {
   const [ecgData, setEcgData] = useState<number[]>([]);
   const [count, setCount] = useState(0);
 
-  // console.log('ecg data', ecgData);
+  //
   return (
     <IonPage>
       <IonHeader>
@@ -87,15 +87,12 @@ const Home: React.FC = () => {
         <h1
           onClick={() => {
             EcgPlugin.addListener('ecgDeviceFound', (data) => {
-              console.log('Device list', data);
               pid = data.devices[0].pid;
               EcgPlugin.connect({ pid: data.devices[0].pid });
             });
-            // EcgPlugin.addListener('ecgRawMessage', (data) => {
 
-            // });
             // EcgPlugin.addListener('ecgRawData', (data) => {
-            //   // console.log('Raw data', JSON.stringify(data, null, 2));
+            //   //
             //   // setEcgData((ecg) => {
             //   //   const arr = [...ecg, ...data.data];
             //   //   return arr.slice(Math.max(0, arr.length - 2000), arr.length);
@@ -103,19 +100,18 @@ const Home: React.FC = () => {
             // });
 
             EcgPlugin.addListener('ecgResult', (data) => {
-              // console.log('ecg result 心脏跳动', data);
+              //
               intervalList.push(data.rrInterval);
               beatTypeList.push(data.beatType);
               ecgResultList.push(data);
 
-              console.log('ecg result list', data);
               localforage.setItem('ecgResult', ecgResultList);
               setCount(ecgResultList.length);
             });
 
             EcgPlugin.startScan({ time: 30000 });
             EcgPlugin.addListener('heartRate', (data) => {
-              // console.log('❤️ heart reate', data.heartRate);
+              //
             });
           }}
         >

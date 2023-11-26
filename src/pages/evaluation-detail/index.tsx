@@ -36,6 +36,7 @@ function EvaluationDetail() {
   const [answerMap, setAnswerMap] = useState<
     Record<number, number | number[] | string>
   >({});
+  const ansRef = useRef<Record<number, number | number[] | string>>({});
   const barRef = useRef<HTMLDivElement>(null);
   const scaleId = new URLSearchParams(location.search).get('uuid');
   const [evaList] = useEvaList();
@@ -69,7 +70,6 @@ function EvaluationDetail() {
     if (curEva?.isSkip && curEva?.skipRule) {
       setSkipRuleStr(curEva.skipRule);
     }
-    console.log('cur eva', curEva);
   }, [evaList]);
 
   const skipRule = useMemo(() => {
@@ -94,10 +94,7 @@ function EvaluationDetail() {
     }
   }, [skipRuleStr, questions]);
 
-  console.log('skip rule', skipRule);
-
   const skipedQuestions = useMemo(() => {
-    console.log('see questions', questions);
     const finalQuestions = [];
     for (let idx = 0; idx < questions.length; idx++) {
       const question = questions[idx];
@@ -163,11 +160,9 @@ function EvaluationDetail() {
           });
           break;
         default:
-          console.log('not a valid question');
       }
     }
 
-    console.log(result);
     return result;
   }
 
@@ -175,16 +170,90 @@ function EvaluationDetail() {
 
   const [present] = useIonToast();
 
-  const renderSingleSelect = (question: any) =>
+  const next = async (question: any, idx: any, arr: any[]) => {
+    // check first
+
+    if (ansRef.current[question.id] === undefined) {
+      alert('请先作答此题目。');
+      return;
+    }
+    // let result: {
+    //   ecgRawDatas: EcgRawData[];
+    //   ecgResults: EcgResult[];
+    //   hrvReport?: HrvReport | undefined;
+    // } | null = null;
+    if (idx === arr.length - 1) {
+      const firstNot = skipedQuestions.findIndex(
+        (question) => !answerMap[question.id]
+      );
+      if (firstNot !== -1) {
+        alert('请作答所有题目');
+        scrollToNext(firstNot);
+        return;
+      }
+      // try {
+      //   if (deviceState === 'online') {
+      //     result = await stopMonitor();
+      //     // 上报心电数据
+      //
+      //   }
+      // } catch (e) {
+      //   present({
+      //     message: '请稍等，我们还没有收集到足够的心电数据',
+      //     duration: 1500,
+      //     position: 'top',
+      //   });
+      //   return;
+      //
+      // }
+
+      const answers = generateQuestionAnswers();
+      const _uuid = uuid();
+      addReportUUIDs(_uuid);
+      db.reports.add({
+        uuid: _uuid,
+        scaleUUId: scaleId ?? '',
+        userId:
+          Number((await localforage.getItem<UserInfo>('user'))?.user?.id) ?? 0,
+        evaReport: answers,
+        // originalEcgData: makeArrayCsv(result?.ecgRawDatas ?? []),
+        // chDetectionResult: makeArrayCsv(result?.ecgResults ?? []),
+        // hrvReport: result?.hrvReport,
+        originalEcgData: '',
+        chDetectionResult: '',
+        //  hrvReport: result?.hrvReport,
+        timestamp: Date.now(),
+        realName: username,
+        phone: phone,
+      });
+      history.back();
+      // id &&saveReport({
+      //   QuestionidAndAnsweridInput: answers,
+      //   scaleId: id,
+      // });
+    } else {
+      scrollToNext(idx + 1);
+    }
+  };
+
+  const renderSingleSelect = (question: any, idx: any, arr: any[]) =>
     question?.answer?.map((answer: any) => (
       <div
         className={`question-item${
           answerMap[question?.id] === answer?.id ? ' checkedrow' : ''
         }`}
         key={answer?.id}
-        onTouchEnd={() =>
-          setAnswerMap((am) => ({ ...am, [question.id]: answer.id }))
-        }
+        onTouchEnd={() => {
+          setAnswerMap((am) => {
+            const a = { ...am, [question.id]: answer.id };
+            ansRef.current = a;
+            return a;
+          });
+
+          setTimeout(() => {
+            next(question, idx, arr);
+          }, 50);
+        }}
       >
         <input
           type="radio"
@@ -217,8 +286,6 @@ function EvaluationDetail() {
         <img src={answer?.picture} style={{ marginLeft: 12 }} />
       </div>
     ));
-
-  console.log('answer map', answerMap);
 
   // useIonViewDidLeave(() => {
   //   if (deviceState === 'online') {
@@ -273,15 +340,13 @@ function EvaluationDetail() {
     const nextId = `#question-${idx}`;
     const nextBox = document?.querySelector(nextId)?.getBoundingClientRect();
     const con = document.querySelector('#question-con');
-    console.log('con con', con, con?.scrollTop, nextBox);
+
     if (!con) return;
     con?.scrollTo({
       top: (con?.scrollTop ?? 0) + (nextBox?.top ?? 0) - 20,
       behavior: 'smooth',
     });
   };
-
-  console.log('real id', id);
 
   // useEffect(() => {
   //   setAnswerMap({
@@ -366,8 +431,6 @@ function EvaluationDetail() {
     </div>
   );
 
-  console.log('skiped questions', skipedQuestions);
-
   const detail = (
     <div>
       <div className="progress-bar" ref={barRef}></div>
@@ -402,7 +465,7 @@ function EvaluationDetail() {
                 />
               )}
               {question.type === QuestionType.Single &&
-                renderSingleSelect(question)}
+                renderSingleSelect(question, idx, arr)}
               {question.type === QuestionType.Multiple &&
                 renderMultiSelect(question)}
               {question.type === QuestionType.Image &&
@@ -411,74 +474,8 @@ function EvaluationDetail() {
               <div className="question-spacer"></div>
               <div
                 className="next-question"
-                onClick={async () => {
-                  // check first
-                  console.log(question);
-                  console.log('answer map', answerMap);
-                  if (answerMap[question.id] === undefined) {
-                    alert('请先作答此题目。');
-                    return;
-                  }
-                  // let result: {
-                  //   ecgRawDatas: EcgRawData[];
-                  //   ecgResults: EcgResult[];
-                  //   hrvReport?: HrvReport | undefined;
-                  // } | null = null;
-                  if (idx === arr.length - 1) {
-                    const firstNot = skipedQuestions.findIndex(
-                      (question) => !answerMap[question.id]
-                    );
-                    if (firstNot !== -1) {
-                      alert('请作答所有题目');
-                      scrollToNext(firstNot);
-                      return;
-                    }
-                    // try {
-                    //   if (deviceState === 'online') {
-                    //     result = await stopMonitor();
-                    //     // 上报心电数据
-                    //     console.log('心电数据', result);
-                    //   }
-                    // } catch (e) {
-                    //   present({
-                    //     message: '请稍等，我们还没有收集到足够的心电数据',
-                    //     duration: 1500,
-                    //     position: 'top',
-                    //   });
-                    //   return;
-                    //   console.log('something went wrong', e);
-                    // }
-
-                    const answers = generateQuestionAnswers();
-                    const _uuid = uuid();
-                    addReportUUIDs(_uuid);
-                    db.reports.add({
-                      uuid: _uuid,
-                      scaleUUId: scaleId ?? '',
-                      userId:
-                        Number(
-                          (await localforage.getItem<UserInfo>('user'))?.user
-                            ?.id
-                        ) ?? 0,
-                      evaReport: answers,
-                      // originalEcgData: makeArrayCsv(result?.ecgRawDatas ?? []),
-                      // chDetectionResult: makeArrayCsv(result?.ecgResults ?? []),
-                      // hrvReport: result?.hrvReport,
-                      originalEcgData: '',
-                      chDetectionResult: '',
-                      //  hrvReport: result?.hrvReport,
-                      timestamp: Date.now(),
-                      realName: username,
-                      phone: phone,
-                    });
-                    history.back();
-                    // id &&saveReport({
-                    //   QuestionidAndAnsweridInput: answers,
-                    //   scaleId: id,
-                    // });
-                  } else {
-                    scrollToNext(idx + 1);
-                  }
+                onClick={() => {
+                  next(question, idx, arr);
                 }}
               >
                 {idx === arr.length - 1 ? '提交问卷' : '下一题'}

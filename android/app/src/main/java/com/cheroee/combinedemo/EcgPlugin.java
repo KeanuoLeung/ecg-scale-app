@@ -7,6 +7,7 @@ import android.os.Message;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.cheroee.cherosdk.ChBatteryData;
 import com.cheroee.cherosdk.ChMsg;
 import com.cheroee.cherosdk.ChSdkManager;
 import com.cheroee.cherosdk.bluetooth.ChScanResult;
@@ -108,7 +109,20 @@ public class EcgPlugin extends Plugin {
             case ChMsg.MSG_CONNECTED:
                 onConnected();
                 break;
+            case ChMsg.MSG_BATTERY:
+                onBattery(msg);
+                break;
         }
+    }
+
+    private void onBattery(Message msg) {
+        ChBatteryData batt = (ChBatteryData) msg.obj;
+        String pid = batt.device.pid;
+        int battLevel = batt.battery;
+        JSObject bat = new JSObject();
+        bat.put("pid", pid);
+        bat.put("battery", battLevel);
+        notifyListeners("battery", bat);
     }
 
     private void onConnected() {
