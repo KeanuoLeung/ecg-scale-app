@@ -25,13 +25,13 @@ const ECGChart = () => {
     }
     let y = canvas.height / 2;
     let row = 0;
-    const ratio = -0.3;
+    const ratio = 0.1;
 
     const ctx = canvas.getContext('2d');
     // 设置画布尺寸
     const WIDTH = window.innerWidth;
     canvas.width = WIDTH - 40;
-    canvas.height = 500;
+    canvas.height = 650;
 
     if (!ctx) {
       return;
@@ -45,11 +45,15 @@ const ECGChart = () => {
         }
         if ((window as any).rawPoints && (window as any).rawPoints.length) {
           if ((window as any).rawPoints.length > 1000) {
+            console.log('slice!', (window as any).rawPoints, {
+              index,
+              prevIndex,
+            });
             (window as any).rawPoints = (window as any).rawPoints.slice(
               prevIndex,
               (window as any).rawPoints.length
             );
-            index = 0;
+            index = 20;
             prevIndex = 0;
           }
           data = (window as any).rawPoints;
@@ -57,7 +61,8 @@ const ECGChart = () => {
             'animate',
             `prev: ${prevIndex} cur: ${index}`,
             data.length,
-            `frame duration: ${Date.now() - prevFrame}`
+            `frame duration: ${Date.now() - prevFrame}`,
+            data
           );
           prevFrame = Date.now();
           // 解析数据
@@ -82,7 +87,7 @@ const ECGChart = () => {
             } else {
               // ctx.clearRect(0, 0, 1000, 500);
               const diff = row === 0 ? 200 : 400;
-              ctx.clearRect(x, row * 250, 10, 250);
+              ctx.clearRect(x, row * 400, 10, 400);
               ctx.beginPath();
               ctx.moveTo(prevX, prevY * ratio + diff);
               ctx.lineTo(x, y * ratio + diff);
@@ -96,7 +101,8 @@ const ECGChart = () => {
           ctx.strokeStyle = 'green';
 
           prevIndex = index;
-          index = Math.min(index + 20, (window as any).rawPoints.length);
+          console.log('animate previndex = index', prevIndex, index);
+          index = Math.min(index + 25, (window as any).rawPoints.length);
         }
 
         if (stoped) {

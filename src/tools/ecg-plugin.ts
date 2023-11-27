@@ -20,6 +20,7 @@ export type EcgDevice = {
   addReportUUIDs: (string: string) => void;
   bpm: string;
   nearRawData: EcgRawData[];
+  red: boolean;
 };
 
 export type EcgRawData = { time: number; isLost: boolean; data: number[] };
@@ -69,6 +70,7 @@ export const EcgDeviceContext = createContext<EcgDevice>({
   addReportUUIDs: () => void 0,
   bpm: '',
   nearRawData: [],
+  red: false,
 });
 
 type EcgPlugin = {
@@ -105,6 +107,7 @@ type EcgPlugin = {
     listener: (data: EcgResult) => void
   ): void;
   addListener(eventName: 'battery', listener: (data: any) => void): void;
+  addListener(eventName: 'dis', listener: (data: any) => void): void;
   removeAllListeners(): void;
 };
 

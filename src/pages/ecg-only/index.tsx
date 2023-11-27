@@ -18,6 +18,7 @@ function EcgOnly() {
     addReportUUIDs: addScaleUUIDs,
     nearRawData,
     bpm,
+    red,
   } = useContext(EcgDeviceContext);
 
   useIonViewDidLeave(() => {
@@ -68,7 +69,8 @@ function EcgOnly() {
               marginBottom: '16px',
             }}
           >
-            当前心率：<span style={{ color: 'green' }}>{bpm}</span>
+            当前心率：
+            <span style={{ color: red ? 'red' : 'green' }}>{bpm}</span>
           </div>
         </div>
         <ECGChart />

@@ -85,6 +85,7 @@ const App: React.FC = () => {
   const [nearRawDatas, setNearRawDatas] = useState<EcgRawData[]>([]);
   const [curShowPid, setCurShowPid] = useState('');
   const [battery, setBattery] = useState<Record<string, number>>({});
+  const [red, setRed] = useState(false);
 
   function log(str: string) {
     setDebugMessages((msgs) => [...msgs.slice(0, 10), str]);
@@ -126,7 +127,9 @@ const App: React.FC = () => {
       });
       EcgPlugin.addListener('ecgRawData', (data) => {
         ecgRawDatas.push(data);
-        (window as any).rawPoints.push(...data.data);
+        if (ecgResults.length) {
+          (window as any).rawPoints.push(...data.data);
+        }
 
         // fetch('http://192.168.1.103:3000/log', {
         //   method: 'POST',
@@ -134,13 +137,31 @@ const App: React.FC = () => {
         //   body: JSON.stringify({ key: 'ecgRawData', value: data }),
         // });
       });
+      let beforeHeartRate = -1;
+      let beforeHeartTime = Date.now();
       EcgPlugin.addListener('heartRate', (data) => {
+        const rate = data.heartRate;
+        console.log('heart rate', data, rate, beforeHeartRate);
         setHeartRate(data.heartRate > 0 ? String(data.heartRate) : '-');
         (window as any).heart =
           data.heartRate > 0 ? String(data.heartRate) : '-';
+
+        if (Date.now() - beforeHeartTime > 1000 * 3 && rate > -1) {
+          if (Math.abs(rate - beforeHeartRate) > 5 && beforeHeartRate > -1) {
+            setRed(true);
+          } else {
+            setRed(false);
+          }
+          beforeHeartRate = rate;
+          beforeHeartTime = Date.now();
+        }
+      });
+      EcgPlugin.addListener('dis', () => {
+        alert('心电贴已断开');
       });
       EcgPlugin.addListener('ecgResult', (data) => {
         ecgResults.push(data);
+        console.log('ecg results', ecgResults);
         // fetch('http://192.168.1.103:3000/log', {
         //   method: 'POST',
         //   headers: { 'Content-Type': 'application/json' },
@@ -175,6 +196,8 @@ const App: React.FC = () => {
     EcgPlugin.removeAllListeners();
     setCurrentDeviceId('');
     setDeviceState('offline');
+    ecgRawDatas = [];
+    ecgResults = [];
   }
 
   useEffect(() => {
@@ -299,6 +322,7 @@ const App: React.FC = () => {
         addReportUUIDs: (id: string) => setReportUUIDs((ids) => [...ids, id]),
         bpm: heartRate,
         nearRawData: nearRawDatas,
+        red,
       }}
     >
       <div>
@@ -382,7 +406,12 @@ const App: React.FC = () => {
                 <>
                   <div className="ecg-heart">❤️</div>
                   <div className="ecg-status-right">
-                    <div className="ecg-status-bpm">{heartRate}bpm</div>
+                    <div
+                      className="ecg-status-bpm"
+                      style={{ color: red ? 'red' : 'green' }}
+                    >
+                      {heartRate}bpm
+                    </div>
                     <div className="ecg-status-bpm">{timeShow}</div>
                     <div className="pid">{curShowPid}</div>
                     <div className="pid" style={{ marginLeft: -4 }}>

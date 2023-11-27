@@ -2,7 +2,7 @@ import React from 'react';
 
 function Bg() {
   const WIDTH = window.innerWidth - 40;
-  const HEIGHT = 500;
+  const HEIGHT = 650;
   const SIZE = 10;
 
   return (

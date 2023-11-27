@@ -112,7 +112,16 @@ public class EcgPlugin extends Plugin {
             case ChMsg.MSG_BATTERY:
                 onBattery(msg);
                 break;
+            case ChMsg.MSG_DISCONNECTED:
+                onDisconnected(msg);
+                break;
         }
+    }
+
+    private void onDisconnected(Message msg) {
+        JSObject success = new JSObject();
+        success.put("success", true);
+        notifyListeners("dis", success);
     }
 
     private void onBattery(Message msg) {
