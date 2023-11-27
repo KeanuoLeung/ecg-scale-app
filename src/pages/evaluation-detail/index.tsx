@@ -273,7 +273,11 @@ function EvaluationDetail() {
         }`}
         key={answer?.id}
         onTouchEnd={() =>
-          setAnswerMap((am) => ({ ...am, [question.id]: answer.id }))
+          setAnswerMap((am) => {
+            const a = { ...am, [question.id]: answer.id };
+            ansRef.current = a;
+            return a;
+          })
         }
       >
         <input
@@ -308,7 +312,11 @@ function EvaluationDetail() {
           selected = selected.includes(answer.id)
             ? selected.filter((i) => i !== answer.id)
             : [...selected, answer.id];
-          setAnswerMap((am) => ({ ...am, [question.id]: selected }));
+          setAnswerMap((am) => {
+            const a = { ...am, [question.id]: selected };
+            ansRef.current = a;
+            return a;
+          });
         }}
       >
         <input
@@ -330,7 +338,11 @@ function EvaluationDetail() {
         className="question-item-input"
         value={String(answerMap[question.id] ?? '')}
         onChange={(e) =>
-          setAnswerMap((am) => ({ ...am, [question.id]: e.target.value }))
+          setAnswerMap((am) => {
+            const a = { ...am, [question.id]: e.target.value };
+            ansRef.current = a;
+            return a;
+          })
         }
       />
     </div>
@@ -347,33 +359,6 @@ function EvaluationDetail() {
       behavior: 'smooth',
     });
   };
-
-  // useEffect(() => {
-  //   setAnswerMap({
-  //     '84': 21,
-  //     '85': 22,
-  //     '86': 23,
-  //     '87': 22,
-  //     '88': 21,
-  //     '89': 22,
-  //     '90': 23,
-  //     '91': 21,
-  //     '92': 22,
-  //     '93': 24,
-  //     '94': 21,
-  //     '95': 22,
-  //     '96': 23,
-  //     '97': 24,
-  //     '98': 22,
-  //     '99': 21,
-  //     '100': 22,
-  //     '101': 21,
-  //     '102': 22,
-  //     '103': 24,
-  //     '104': 22,
-  //     '105': 21,
-  //   });
-  // }, []);
 
   const userInfo = (
     <div>
