@@ -39,7 +39,7 @@
 
 .progress-bar {
   position: fixed;
-  width: 3px;
+  width: 8px;
   height: 0vh;
   transition: all 0.1s;
   top: 0;

@@ -266,6 +266,9 @@ const App: React.FC = () => {
         });
         const event = new CustomEvent('stop-monitor');
         window.dispatchEvent(event);
+        if (fromEvent) {
+          alert('已到测量结束时间，测量完毕')
+        }
         // 上报心电数据
       }
     } catch (e) {

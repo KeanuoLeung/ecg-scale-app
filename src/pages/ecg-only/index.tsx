@@ -32,7 +32,7 @@ function EcgOnly() {
       history.goBack();
     });
 
-    const time = Number(localStorage.getItem('defaulttime') ?? '10');
+    const time = Number(localStorage.getItem('defaulttime') ?? '5');
 
     const start = Date.now();
 

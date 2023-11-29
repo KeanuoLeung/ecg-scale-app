@@ -76,20 +76,23 @@ function EvaluationDetail() {
     const rawRules = skipRuleStr.split('|');
     if (!questions.length) return [];
     try {
+      console.log('raw rules', rawRules);
       const finalRules = rawRules.map((raw) => {
-        const RE = /(?<when>\d+)-(?<select>[A-Za-z])-(?<to>\d+)/;
+        console.log('errerr', raw);
+        const RE = /(?<when>\d+)-(?<select>[A-Za-z])-(?<to>\d+|end)/;
         const { when, select, to } = RE.exec(raw)?.groups ?? {};
         const selectIdx = select.toUpperCase().charCodeAt(0) - 65;
         const rule = {
           whenIdx: Number(when) - 1, // 改成正常的 idx
           selectIdx, // A to 0
           select: questions[Number(when) - 1].answer[selectIdx]?.id,
-          toIdx: Number(to) - 1,
+          toIdx: to === 'end' ? questions.length - 1 : Number(to) - 1,
         };
         return rule;
       });
       return finalRules;
     } catch (e) {
+      console.log('errerr', e);
       return [];
     }
   }, [skipRuleStr, questions]);
@@ -112,6 +115,13 @@ function EvaluationDetail() {
     }
     return finalQuestions;
   }, [questions, skipRule, answerMap]);
+
+  console.log('skip rule str', {
+    skipRuleStr,
+    skipRule,
+    skipedQuestions,
+    questions,
+  });
 
   useEffect(() => {
     // setQuestions(BLANK_QUESTIONS);
@@ -250,9 +260,11 @@ function EvaluationDetail() {
             return a;
           });
 
-          setTimeout(() => {
-            next(question, idx, arr);
-          }, 50);
+          if (idx !== skipedQuestions.length - 1) {
+            setTimeout(() => {
+              next(question, idx, arr);
+            }, 50);
+          }
         }}
       >
         <input

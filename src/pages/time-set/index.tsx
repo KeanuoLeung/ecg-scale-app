@@ -16,9 +16,7 @@ import localforage from 'localforage';
 import { UserInfo } from '../../api';
 
 function TimeSet() {
-  const [url, setUrl] = useState(
-    Number(localStorage.getItem('defaulttime') ?? '10')
-  );
+  const [url, setUrl] = useState(localStorage.getItem('defaulttime') ?? '5');
   const history = useHistory();
   return (
     <IonPage>
@@ -28,7 +26,7 @@ function TimeSet() {
           placeholder="请输入时间"
           value={url}
           type="number"
-          onChange={(e) => setUrl(Number(e.target.value))}
+          onChange={(e) => setUrl(e.target.value)}
         ></input>
         <div
           className="save-button"
