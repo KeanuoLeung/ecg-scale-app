@@ -67,10 +67,10 @@ function EvaluationList() {
 
   const checkDisabled = async () => {
     const reportsToUpload = await db.reports.toArray();
-    
+
     const result = [];
     const now = Date.now();
-    
+
     for (const scale of list) {
       if (
         scale.releaseType === ReleaseType.SINGLE &&
@@ -86,7 +86,7 @@ function EvaluationList() {
         result.push(scale.uuid ?? '');
       }
     }
-    
+
     setDisabledReports(result);
   };
 
@@ -113,8 +113,6 @@ function EvaluationList() {
 
       const ecgs = (await db.ecgRecords.toArray()).filter((ecg) => !ecg.synced);
 
-      
-
       for (const report of reports) {
         const success = await saveReport({
           QuestionidAndAnsweridInput: report.evaReport,
@@ -122,8 +120,10 @@ function EvaluationList() {
           realname: report.realName ?? '',
           phone: report.phone ?? '',
           uuid: report.uuid ?? '',
+          departmentEvaluationId: report.departmentEvaluationId,
+          individualEvaluationId: report.individualEvaluationId,
         });
-        
+
         if (success) {
           report.id && db.reports.update(report.id, { synced: true });
         }
@@ -184,13 +184,11 @@ function EvaluationList() {
 
     localforage.getItem<UserInfo>('user').then((res) => {
       setUserName(res?.user?.realname ?? '用户');
-      
+
       setUserType((res?.role as any) ?? 'ADMIN');
     });
   }, []);
 
-  
-  
   return (
     <IonPage style={{ overflow: 'scroll' }}>
       <IonActionSheet
@@ -356,7 +354,12 @@ function EvaluationList() {
               // history.push('/eva-detail');
             }}
           >
-            <div>{evaluation.scaleName}</div>
+            <div>
+              {evaluation.scaleName}
+              {disabledReports.includes(evaluation.uuid ?? '?')
+                ? '(已做完)'
+                : ''}
+            </div>
             {userType === 'ADMIN' && (
               <div className="list-card-date">
                 创建于：{new Date(evaluation.createdAt).toLocaleString()}

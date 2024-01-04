@@ -863,6 +863,42 @@ export type HrvEvaluationDetail = {
   userList?: Maybe<Array<Scalars['Int']['output']>>;
 };
 
+export type HrvReportDetail = {
+  __typename?: 'HrvReportDetail';
+  analysisChart?: Maybe<Scalars['String']['output']>;
+  ecgInfo?: Maybe<Scalars['String']['output']>;
+  heartRateChart?: Maybe<Scalars['String']['output']>;
+  hrvFrequencyDomainAnalysis?: Maybe<Scalars['String']['output']>;
+  hrvTimeDomainAnalysis?: Maybe<Scalars['String']['output']>;
+  signature?: Maybe<Scalars['String']['output']>;
+  testAnalysis?: Maybe<Scalars['String']['output']>;
+  testChart?: Maybe<Scalars['String']['output']>;
+  userInfo?: Maybe<Scalars['String']['output']>;
+};
+
+export type HrvReportNewOutput = {
+  __typename?: 'HrvReportNewOutput';
+  createdAt?: Maybe<Scalars['DateTime']['output']>;
+  end_time?: Maybe<Scalars['DateTime']['output']>;
+  id: Scalars['ID']['output'];
+  realname?: Maybe<Scalars['String']['output']>;
+  scale_id?: Maybe<Scalars['Int']['output']>;
+  scalename?: Maybe<Scalars['String']['output']>;
+  signature?: Maybe<Scalars['String']['output']>;
+  start_time?: Maybe<Scalars['DateTime']['output']>;
+  updatedAt?: Maybe<Scalars['DateTime']['output']>;
+  user_id?: Maybe<Scalars['Int']['output']>;
+  username?: Maybe<Scalars['String']['output']>;
+  usetime?: Maybe<Scalars['String']['output']>;
+  uuid: Scalars['String']['output'];
+};
+
+export type HrvReportNewOutputData = {
+  __typename?: 'HrvReportNewOutputData';
+  data: Array<HrvReportNewOutput>;
+  totalCount: Scalars['Int']['output'];
+};
+
 export type HrvReportOutput = {
   __typename?: 'HrvReportOutput';
   analysis_chart?: Maybe<Scalars['String']['output']>;
@@ -886,12 +922,6 @@ export type HrvReportOutput = {
   username?: Maybe<Scalars['String']['output']>;
   usetime?: Maybe<Scalars['String']['output']>;
   uuid: Scalars['String']['output'];
-};
-
-export type HrvReportOutputData = {
-  __typename?: 'HrvReportOutputData';
-  data: Array<HrvReportOutput>;
-  totalCount: Scalars['Int']['output'];
 };
 
 export type IndividualEvaluation = {
@@ -962,6 +992,7 @@ export type Mutation = {
   deleteDiagnostic: ScaleDiagnostic;
   deleteFactor: ScaleFactor;
   deleteHrvEvaluation: CreateHrvEvaluationResponse;
+  deleteIndividualEvaluation: CreateResponse;
   deleteReport: CreateResponse;
   deleteReportInfo: CreateResponse;
   deleteScaleQuestionById: DeleteScaleQuestionResponse;
@@ -1145,6 +1176,11 @@ export type MutationDeleteFactorArgs = {
 
 
 export type MutationDeleteHrvEvaluationArgs = {
+  id: Scalars['Int']['input'];
+};
+
+
+export type MutationDeleteIndividualEvaluationArgs = {
   id: Scalars['Int']['input'];
 };
 
@@ -1379,7 +1415,7 @@ export type Query = {
   getAllChDetectionResult: Array<ChDetectionResult>;
   getAllConsulationRecords: GetAllConsulationRecord;
   getAllEcgHrvReport: Array<ChDetectionResult>;
-  getAllHrvReport: HrvReportOutputData;
+  getAllHrvReport: HrvReportNewOutputData;
   getAllHrvReportOnOnePage: Array<HrvReportOutput>;
   getAllScaleTypeAndName: ScaleTypeReturnType;
   getAllSclaeQuestion: GetAllScaleQuestionReturnType;
@@ -1398,6 +1434,7 @@ export type Query = {
   getGrowthHistoryById?: Maybe<GrowthHistory>;
   getHrvEvaluationDetail: HrvEvaluationDetail;
   getHrvIndividualTableData: GetAllHrvEvaluation;
+  getHrvReportByUUID: HrvReportDetail;
   getIndividualEvaluationDetail: IndividualEvaluationDetail;
   getIndividualScalesTableData: GetAllIndividualEvaluation;
   getQuestionByScaleName: Array<ScaleQuestion>;
@@ -1587,6 +1624,11 @@ export type QueryGetHrvEvaluationDetailArgs = {
 
 export type QueryGetHrvIndividualTableDataArgs = {
   data: GetHrvIndividualTableData;
+};
+
+
+export type QueryGetHrvReportByUuidArgs = {
+  uuid: Scalars['String']['input'];
 };
 
 
@@ -1815,6 +1857,8 @@ export type ReportQuestionChooseInput = {
 
 export type ReportQuestionChooseUseQuestionidAndAnsweridInput = {
   QuestionidAndAnsweridInput: Array<QuestionidAndAnsweridInput>;
+  departmentEvaluationId?: InputMaybe<Scalars['Int']['input']>;
+  individualEvaluationId?: InputMaybe<Scalars['Int']['input']>;
   phone: Scalars['String']['input'];
   realname: Scalars['String']['input'];
   scaleUUid: Scalars['String']['input'];
@@ -2010,6 +2054,7 @@ export type ScaleTestSearchInput = {
   scaleName?: InputMaybe<Scalars['String']['input']>;
   startTime?: InputMaybe<Scalars['Float']['input']>;
   userName?: InputMaybe<Scalars['String']['input']>;
+  warningResults?: InputMaybe<Array<Scalars['String']['input']>>;
 };
 
 export type ScaleTestSearchList = {
@@ -2162,7 +2207,9 @@ export type SubmitUserInfo = {
 
 export type SubmitUserInformation = {
   address?: InputMaybe<Scalars['String']['input']>;
+  admissionNum?: InputMaybe<Scalars['String']['input']>;
   age?: InputMaybe<Scalars['Int']['input']>;
+  bedNum?: InputMaybe<Scalars['String']['input']>;
   birthDate?: InputMaybe<Scalars['DateTime']['input']>;
   birthPlace?: InputMaybe<Scalars['String']['input']>;
   bloodType?: InputMaybe<Scalars['Int']['input']>;
@@ -2341,7 +2388,9 @@ export type UpdatefatherResponse = {
 export type User = {
   __typename?: 'User';
   address?: Maybe<Scalars['String']['output']>;
+  admissionNum?: Maybe<Scalars['String']['output']>;
   age?: Maybe<Scalars['Int']['output']>;
+  bedNum?: Maybe<Scalars['String']['output']>;
   birthDate?: Maybe<Scalars['DateTime']['output']>;
   birthPlace?: Maybe<Scalars['String']['output']>;
   bloodType?: Maybe<Scalars['Int']['output']>;

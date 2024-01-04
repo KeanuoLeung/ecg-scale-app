@@ -14,6 +14,8 @@ export interface Report {
   synced?: boolean;
   realName?: string;
   phone?: string;
+  departmentEvaluationId?: number | null;
+  individualEvaluationId?: number | null;
 }
 
 export interface EcgRecord {
@@ -35,7 +37,7 @@ export class DB extends Dexie {
     super('report');
     this.version(2).stores({
       reports:
-        '++id, uuid, scaleUUId, userId, evaReport, originalEcgData, chDetectionResult, hrvReport, timestamp, synced, realName, phone',
+        '++id, uuid, scaleUUId, userId, evaReport, originalEcgData, chDetectionResult, hrvReport, timestamp, synced, realName, phone, departmentEvaluationId, individualEvaluationId',
       ecgRecords:
         '++id, originalEcgData, chDetectionResult, timestamp, synced, hrvReport, reportUUIDList, userId',
     });

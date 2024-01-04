@@ -39,8 +39,8 @@
 
 .progress-bar {
   position: fixed;
-  width: 8px;
-  height: 0vh;
+  width: 0vw;
+  height: 8px;
   transition: all 0.1s;
   top: 0;
   left: 0;
@@ -176,4 +176,17 @@ label {
   font-size: 25px;
   font-weight: bold;
   border-radius: 15px;
+}
+
+.total {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  font-size: 14px;
+  color: #666;
+  background: #fff;
+  font-weight: bold;
+  padding: 6px;
+  opacity: 0.7;
+  border-radius: 10px;
 }

@@ -40,7 +40,7 @@
 .ecg-status {
   position: fixed;
   bottom: 10px;
-  left: 10px;
+  right: 10px;
   border-radius: 20px;
   padding: 10px;
   font-size: 48px;
@@ -91,4 +91,8 @@
 
 .pid {
   font-size: 12px;
+}
+
+.red {
+  color: red !important;
 }

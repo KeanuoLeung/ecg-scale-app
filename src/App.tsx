@@ -12,6 +12,7 @@ import {
   setupIonicReact,
   IonLoading,
   useIonToast,
+  IonAlert,
 } from '@ionic/react';
 import { IonReactRouter } from '@ionic/react-router';
 import Home from './pages/Home';
@@ -68,6 +69,28 @@ let ecgResults: EcgResult[] = [];
 
 (window as any).heart = '-';
 
+let dontShowAlert = false;
+
+let i: any;
+
+let cancelTimer: any;
+
+function showAlert() {
+  if (dontShowAlert) {
+    return;
+  }
+  alert('心电贴已断开');
+  location.href = '/';
+  window.history.replaceState(null, '', '/');
+  dontShowAlert = true;
+  clearTimeout(i);
+  i = setTimeout(() => {
+    dontShowAlert = false;
+  }, 5000);
+}
+
+let heartRateGet = false;
+
 const App: React.FC = () => {
   const [deviceState, setDeviceState] =
     useState<EcgDevice['deviceState']>('offline');
@@ -86,6 +109,7 @@ const App: React.FC = () => {
   const [curShowPid, setCurShowPid] = useState('');
   const [battery, setBattery] = useState<Record<string, number>>({});
   const [red, setRed] = useState(false);
+  const [isExitShow, setIsExitShow] = useState(false);
 
   function log(str: string) {
     setDebugMessages((msgs) => [...msgs.slice(0, 10), str]);
@@ -107,6 +131,7 @@ const App: React.FC = () => {
   function monitorDevice(pid: string): Promise<boolean> {
     return new Promise((resolve, reject) => {
       let connected = false;
+      heartRateGet = false;
       log('connect to device');
       EcgPlugin.connect({ pid });
       EcgPlugin.addListener('connected', (data) => {
@@ -123,11 +148,11 @@ const App: React.FC = () => {
       });
       EcgPlugin.addListener('battery', (data) => {
         console.log('battery', data);
-        setBattery((batt) => ({ ...batt, [data.pid]: data.battery }));
+        // setBattery((batt) => ({ ...batt, [data.pid]: data.battery }));
       });
       EcgPlugin.addListener('ecgRawData', (data) => {
         ecgRawDatas.push(data);
-        if (ecgResults.length) {
+        if (ecgResults.length && heartRateGet) {
           (window as any).rawPoints.push(...data.data);
         }
 
@@ -141,6 +166,7 @@ const App: React.FC = () => {
       let beforeHeartTime = Date.now();
       EcgPlugin.addListener('heartRate', (data) => {
         const rate = data.heartRate;
+        heartRateGet = true;
         console.log('heart rate', data, rate, beforeHeartRate);
         setHeartRate(data.heartRate > 0 ? String(data.heartRate) : '-');
         (window as any).heart =
@@ -152,12 +178,15 @@ const App: React.FC = () => {
           } else {
             setRed(false);
           }
+          if (rate >= 135 || rate <= 60) {
+            setRed(true);
+          }
           beforeHeartRate = rate;
           beforeHeartTime = Date.now();
         }
       });
       EcgPlugin.addListener('dis', () => {
-        alert('心电贴已断开');
+        showAlert();
       });
       EcgPlugin.addListener('ecgResult', (data) => {
         ecgResults.push(data);
@@ -202,19 +231,20 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setTimeShow(
-        `${String(
-          new Date(Date.now() - connectedTimestamp).getMinutes()
-        ).padStart(2, '0')}:${String(
-          new Date(Date.now() - connectedTimestamp).getSeconds()
-        ).padStart(2, '0')}`
-      );
+      deviceState === 'online' &&
+        setTimeShow(
+          `${String(
+            new Date(Date.now() - connectedTimestamp).getUTCMinutes()
+          ).padStart(2, '0')}:${String(
+            new Date(Date.now() - connectedTimestamp).getUTCSeconds()
+          ).padStart(2, '0')}`
+        );
     }, 500);
 
     return () => {
       clearInterval(timer);
     };
-  }, [connectedTimestamp]);
+  }, [connectedTimestamp, deviceState]);
 
   async function stopMonitor() {
     const _ecgRawDatas = [...ecgRawDatas];
@@ -267,7 +297,7 @@ const App: React.FC = () => {
         const event = new CustomEvent('stop-monitor');
         window.dispatchEvent(event);
         if (fromEvent) {
-          alert('已到测量结束时间，测量完毕')
+          alert('已到测量结束时间，测量完毕');
         }
         // 上报心电数据
       }
@@ -311,6 +341,8 @@ const App: React.FC = () => {
   }, [deviceState]);
 
   console.log('this is device state', deviceState);
+
+  console.log('cur path', location.pathname);
 
   return (
     <EcgDeviceContext.Provider
@@ -392,21 +424,47 @@ const App: React.FC = () => {
         {deviceState === 'online' &&
           ReactDOM.createPortal(
             <div
-              className="ecg-status"
               onClick={async () => {
                 setShowCancel(true);
-                setTimeout(() => {
+                clearTimeout(cancelTimer);
+                cancelTimer = setTimeout(() => {
                   setShowCancel(false);
-                }, 1000);
-                if (showCancel) {
-                  stop();
-                }
+                }, 4000);
               }}
             >
               {showCancel ? (
-                <div style={{ fontSize: 36, fontWeight: 'bold' }}>⏸️ 停止</div>
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    columnGap: '12px',
+                  }}
+                >
+                  <div
+                    className="ecg-status"
+                    onClick={() => {
+                      if (showCancel) {
+                        stop();
+                      }
+                    }}
+                    style={{ fontSize: 24, fontWeight: 'bold' }}
+                  >
+                    ⏸️ 停止
+                  </div>
+                  <div
+                    className="ecg-status"
+                    id="present-alert"
+                    onClick={() => {
+                      setIsExitShow(true);
+                    }}
+                    style={{ fontSize: 24, fontWeight: 'bold', right: '130px' }}
+                  >
+                    ❌ 断开
+                  </div>
+                </div>
               ) : (
-                <>
+                <div className="ecg-status">
                   <div className="ecg-heart">❤️</div>
                   <div className="ecg-status-right">
                     <div
@@ -421,11 +479,41 @@ const App: React.FC = () => {
                       🔋{battery[curShowPid]}%
                     </div>
                   </div>
-                </>
+                </div>
               )}
             </div>,
             document.body
           )}
+        <IonAlert
+          header="确认断开心电贴吗？"
+          mode="ios"
+          isOpen={isExitShow}
+          buttons={[
+            {
+              text: '继续测试',
+              role: 'cancel',
+              handler: () => {
+                setIsExitShow(false);
+              },
+            },
+            {
+              text: '确认断开',
+              role: 'confirm',
+              cssClass: 'red',
+              handler: () => {
+                cancelMonitor();
+                setTimeout(() => {
+                  alert('心电贴已断开');
+                  location.href = '/';
+                  window.history.replaceState(null, '', '/');
+                }, 10);
+              },
+            },
+          ]}
+          onDidDismiss={({ detail }) =>
+            console.log(`Dismissed with role: ${detail.role}`)
+          }
+        ></IonAlert>
       </div>
     </EcgDeviceContext.Provider>
   );

@@ -45,6 +45,10 @@ function EvaluationDetail() {
   const [phone, setPhone] = useState('');
   const [userchecked, setUserchecked] = useState(false);
   const [userType, setUserType] = useState<'ADMIN' | 'USER'>('ADMIN');
+  const [extra, setExtra] = useState({
+    departmentEvaluationId: null,
+    individualEvaluationId: null,
+  });
   const {
     connectToDevice,
     debugMessages,
@@ -86,7 +90,7 @@ function EvaluationDetail() {
           whenIdx: Number(when) - 1, // 改成正常的 idx
           selectIdx, // A to 0
           select: questions[Number(when) - 1].answer[selectIdx]?.id,
-          toIdx: to === 'end' ? questions.length - 1 : Number(to) - 1,
+          toIdx: to === 'end' ? questions.length : Number(to) - 1,
         };
         return rule;
       });
@@ -127,6 +131,14 @@ function EvaluationDetail() {
     // setQuestions(BLANK_QUESTIONS);
     async function run() {
       const questions: any = await localforage.getItem(`scale-${scaleId}`);
+      console.log('questions', questions);
+      const details: any[] = (await localforage.getItem('evaList')) ?? [];
+      const detail = details.find((item) => item.uuid === scaleId);
+      console.log('cur scale detail', detail);
+      setExtra({
+        individualEvaluationId: detail.individualEvaluationId,
+        departmentEvaluationId: detail.departmentEvaluationId,
+      });
       setQuestions(
         questions?.ScaleQuestionRender?.map?.((question: any, idx: number) => ({
           ...question,
@@ -235,6 +247,7 @@ function EvaluationDetail() {
         timestamp: Date.now(),
         realName: username,
         phone: phone,
+        ...extra,
       });
       history.back();
       // id &&saveReport({
@@ -431,6 +444,7 @@ function EvaluationDetail() {
   const detail = (
     <div>
       <div className="progress-bar" ref={barRef}></div>
+      <div className="total">总题数：{skipedQuestions.length}题</div>
       <div
         className="detail"
         id="question-con"
@@ -439,7 +453,7 @@ function EvaluationDetail() {
             (e.target as any).scrollTop /
             ((e.target as any).scrollHeight - window.innerHeight);
           const vh = Math.round(progress * 100);
-          barRef.current && (barRef.current.style.height = `${vh}vh`);
+          barRef.current && (barRef.current.style.width = `${vh}vw`);
         }}
       >
         {skipedQuestions.map((question, idx, arr) => (

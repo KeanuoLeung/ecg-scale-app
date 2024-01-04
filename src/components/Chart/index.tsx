@@ -30,41 +30,21 @@ const ECGChart = () => {
     const ctx = canvas.getContext('2d');
     // 设置画布尺寸
     const WIDTH = window.innerWidth;
-    canvas.width = WIDTH - 40;
-    canvas.height = 650;
+    canvas.width = (WIDTH - 40) * 2;
+    canvas.height = 650 * 2;
 
     if (!ctx) {
       return;
     }
-    let prevFrame = Date.now();
     function animate() {
       setTimeout(() => {
         console.log('animate 🍺');
         if (!canvas || !ctx) {
           return;
         }
+        console.log('raw points', (window as any).rawPoints, prevIndex, index)
         if ((window as any).rawPoints && (window as any).rawPoints.length) {
-          if ((window as any).rawPoints.length > 1000) {
-            console.log('slice!', (window as any).rawPoints, {
-              index,
-              prevIndex,
-            });
-            (window as any).rawPoints = (window as any).rawPoints.slice(
-              prevIndex,
-              (window as any).rawPoints.length
-            );
-            index = 20;
-            prevIndex = 0;
-          }
           data = (window as any).rawPoints;
-          console.log(
-            'animate',
-            `prev: ${prevIndex} cur: ${index}`,
-            data.length,
-            `frame duration: ${Date.now() - prevFrame}`,
-            data
-          );
-          prevFrame = Date.now();
           // 解析数据
 
           // 绘制心电图曲线
@@ -86,13 +66,13 @@ const ECGChart = () => {
               }
             } else {
               // ctx.clearRect(0, 0, 1000, 500);
-              const diff = row === 0 ? 200 : 400;
+              const diff = row === 0 ? 180 : 380;
               ctx.clearRect(x, row * 400, 10, 400);
               ctx.beginPath();
               ctx.moveTo(prevX, prevY * ratio + diff);
               ctx.lineTo(x, y * ratio + diff);
               (prevX = x), (prevY = y);
-              ctx.lineWidth = 3;
+              ctx.lineWidth = 1;
               ctx.stroke();
             }
             prevX = x;
@@ -101,15 +81,14 @@ const ECGChart = () => {
           ctx.strokeStyle = 'green';
 
           prevIndex = index;
-          console.log('animate previndex = index', prevIndex, index);
-          index = Math.min(index + 25, (window as any).rawPoints.length);
+          index = Math.min(index + 6, (window as any).rawPoints.length);
         }
 
         if (stoped) {
           return;
         }
         animate();
-      }, 50);
+      }, 20);
     }
     animate();
 
@@ -123,7 +102,7 @@ const ECGChart = () => {
   return (
     <div style={{ position: 'relative', marginTop: 0 }}>
       <canvas
-        style={{ position: 'absolute', top: 0, left: 0, zIndex: 30 }}
+        style={{ position: 'absolute', top: 0, left: 0, zIndex: 30, transform: 'scale(0.89)', transformOrigin: '0% 0%' }}
         ref={canvasRef}
       ></canvas>
       <div style={{ position: 'absolute', top: 0, left: 0, zIndex: 10 }}>
