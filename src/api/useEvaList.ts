@@ -17,13 +17,14 @@ function useEvaList(): [list: Partial<ScaleEvaluation>[], refresh: () => void] {
       return;
     }
     const result = await getList(Number(r?.user?.id));
+    console.log('this is list', result);
     setEvaList(result);
     localforage.setItem('evaList', result);
     for (const eva of result) {
       const uuid = eva.uuid;
       if (uuid) {
         const detail = await getScaleDetail(uuid);
-        localforage.setItem(`scale-${uuid}`, detail);
+        localforage.setItem(`scale-${eva.test_uuid}`, detail);
       }
     }
   }

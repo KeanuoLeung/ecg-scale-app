@@ -94,6 +94,8 @@ function EvaluationList() {
       }
     }
 
+    console.log('check disabled', { reportsToUpload, disabledReports, result });
+
     setDisabledReports(result);
   };
 
@@ -206,6 +208,8 @@ function EvaluationList() {
   }, []);
 
   console.log('evas', list);
+
+  console.log('disdis', disabledReports);
 
   return (
     <IonPage style={{ overflow: 'scroll' }}>
@@ -367,25 +371,30 @@ function EvaluationList() {
               className={`list-card ${
                 (disabledReports.includes(
                   String(evaluation.test_uuid) ?? 'xxxx'
-                ) || evaluation.isTest) && 'disabled'
+                ) ||
+                  (evaluation.isTest &&
+                    evaluation.releaseType === ReleaseType.SINGLE)) &&
+                'disabled'
               }`}
-              key={evaluation.uuid}
+              key={evaluation.test_uuid}
               onClick={() => {
-                if (disabledReports.includes(evaluation.uuid ?? '?')) {
+                if (disabledReports.includes(evaluation.test_uuid ?? '?')) {
                   alert('量表已失效');
                   return;
                 }
                 if (deviceState !== 'online') {
-                  setOpingEva(evaluation.uuid ?? '');
+                  setOpingEva(evaluation.test_uuid ?? '');
                 } else {
-                  history.push(`/eva-detail?uuid=${evaluation.uuid}`);
+                  history.push(`/eva-detail?uuid=${evaluation.test_uuid}`);
                 }
                 // history.push('/eva-detail');
               }}
             >
               <div>
                 {evaluation.scaleName}
-                {disabledReports.includes(evaluation.uuid ?? '?')
+                {disabledReports.includes(evaluation.test_uuid ?? '?') ||
+                (evaluation.isTest &&
+                  evaluation.releaseType === ReleaseType.SINGLE)
                   ? '(已做完)'
                   : ''}
               </div>
@@ -418,30 +427,31 @@ function EvaluationList() {
             <div
               className={`list-card ${
                 (disabledReports.includes(
-                  String(evaluation.individualEvaluationId) ?? 'xxxx'
+                  String(evaluation.test_uuid) ?? 'xxxx'
                 ) ||
-                  disabledReports.includes(
-                    String(evaluation.departmentEvaluationId) ?? 'xxxx'
-                  )) &&
+                  (evaluation.isTest &&
+                    evaluation.releaseType === ReleaseType.SINGLE)) &&
                 'disabled'
               }`}
-              key={evaluation.uuid}
+              key={evaluation.test_uuid}
               onClick={() => {
-                if (disabledReports.includes(evaluation.uuid ?? '?')) {
+                if (disabledReports.includes(evaluation.test_uuid ?? '?')) {
                   alert('量表已失效');
                   return;
                 }
                 if (deviceState !== 'online') {
-                  setOpingEva(evaluation.uuid ?? '');
+                  setOpingEva(evaluation.test_uuid ?? '');
                 } else {
-                  history.push(`/eva-detail?uuid=${evaluation.uuid}`);
+                  history.push(`/eva-detail?uuid=${evaluation.test_uuid}`);
                 }
                 // history.push('/eva-detail');
               }}
             >
               <div>
                 {evaluation.scaleName}
-                {disabledReports.includes(evaluation.uuid ?? '?')
+                {disabledReports.includes(evaluation.test_uuid ?? '?') ||
+                (evaluation.isTest &&
+                  evaluation.releaseType === ReleaseType.SINGLE)
                   ? '(已做完)'
                   : ''}
               </div>

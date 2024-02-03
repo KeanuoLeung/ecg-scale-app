@@ -26,12 +26,15 @@ const httpLink = new HttpLink({
 
 const authLink = new ApolloLink((operation, forward) => {
   // add the authorization to the headers
-  operation.setContext(({ headers = {} }) => ({
-    headers: {
-      ...headers,
-      authorization: 'Bearer ' + localStorage.getItem('token'),
-    },
-  }));
+  operation.setContext(({ headers = {} }) => {
+    console.log('header', headers);
+    return {
+      headers: {
+        ...headers,
+        authorization: 'Bearer ' + localStorage.getItem('token'),
+      },
+    };
+  });
 
   return forward(operation);
 });

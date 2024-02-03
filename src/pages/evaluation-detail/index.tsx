@@ -49,6 +49,7 @@ function EvaluationDetail() {
     departmentEvaluationId: null,
     individualEvaluationId: null,
     test_uuid: null,
+    uuid: '',
   });
   const {
     connectToDevice,
@@ -134,12 +135,13 @@ function EvaluationDetail() {
       const questions: any = await localforage.getItem(`scale-${scaleId}`);
       console.log('questions', questions);
       const details: any[] = (await localforage.getItem('evaList')) ?? [];
-      const detail = details.find((item) => item.uuid === scaleId);
+      const detail = details.find((item) => item.test_uuid === scaleId);
       console.log('cur scale detail', detail);
       setExtra({
         individualEvaluationId: detail.individualEvaluationId,
         departmentEvaluationId: detail.departmentEvaluationId,
-        test_uuid: detail.test_uuid
+        test_uuid: detail.test_uuid,
+        uuid: detail.uuid,
       });
       setQuestions(
         questions?.ScaleQuestionRender?.map?.((question: any, idx: number) => ({
@@ -235,8 +237,7 @@ function EvaluationDetail() {
       const _uuid = uuid();
       addReportUUIDs(_uuid);
       db.reports.add({
-        uuid: _uuid,
-        scaleUUId: scaleId ?? '',
+        scaleUUId: extra.uuid ?? '',
         userId:
           Number((await localforage.getItem<UserInfo>('user'))?.user?.id) ?? 0,
         evaReport: answers,
