@@ -96,3 +96,15 @@
 .red {
   color: red !important;
 }
+
+.next-question {
+  height: 60px;
+  background: #2850f7;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 25px;
+  font-weight: bold;
+  border-radius: 15px;
+}

@@ -106,9 +106,16 @@ type EcgPlugin = {
     eventName: 'ecgResult',
     listener: (data: EcgResult) => void
   ): void;
+  addListener(
+    eventName: 'plugin-init',
+    listener: (data: { success: boolean }) => void
+  ): void;
   addListener(eventName: 'battery', listener: (data: any) => void): void;
   addListener(eventName: 'dis', listener: (data: any) => void): void;
   removeAllListeners(): void;
+  initEcgPlugin(): void;
+  restart(): void;
+  stopScan(): void;
 };
 
 const EcgPlugin = registerPlugin<EcgPlugin>('Ecg');

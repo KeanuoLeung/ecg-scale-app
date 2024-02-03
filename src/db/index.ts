@@ -16,6 +16,7 @@ export interface Report {
   phone?: string;
   departmentEvaluationId?: number | null;
   individualEvaluationId?: number | null;
+  test_uuid?: string | null;
 }
 
 export interface EcgRecord {

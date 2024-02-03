@@ -90,6 +90,16 @@ function showAlert() {
 }
 
 let heartRateGet = false;
+let inited = false;
+EcgPlugin.addListener('plugin-init', () => {
+  inited = true;
+  console.log('plugin-init');
+});
+
+(window as any).re = () => {
+  EcgPlugin.restart();
+  // alert('restart')
+};
 
 const App: React.FC = () => {
   const [deviceState, setDeviceState] =
@@ -111,21 +121,45 @@ const App: React.FC = () => {
   const [red, setRed] = useState(false);
   const [isExitShow, setIsExitShow] = useState(false);
 
+  console.log('this is battery', battery);
+
   function log(str: string) {
     setDebugMessages((msgs) => [...msgs.slice(0, 10), str]);
   }
 
   function startScan() {
+    EcgPlugin.stopScan();
     EcgPlugin.startScan({ time: -1 });
   }
 
   useEffect(() => {
+    console.log('内部检查', inited);
+
+    function initPlugin() {
+      if (inited) {
+        console.log('插件初始化，停止timer');
+        return;
+      }
+
+      EcgPlugin.initEcgPlugin();
+
+      // setTimeout(() => {
+      //   initPlugin();
+      //   console.log('初始化插件');
+      // }, 1000);
+    }
+
+    initPlugin();
+
     EcgPlugin.addListener('ecgDeviceFound', (data) => {
       // 连接搜索到的第一个心电设备
       setDeviceList(data.devices);
+      console.log('devices', data);
     });
-    startScan();
-    startScan();
+    
+    (window as any).scan = () => {
+      startScan();
+    };
   }, []);
 
   function monitorDevice(pid: string): Promise<boolean> {
@@ -148,7 +182,7 @@ const App: React.FC = () => {
       });
       EcgPlugin.addListener('battery', (data) => {
         console.log('battery', data);
-        // setBattery((batt) => ({ ...batt, [data.pid]: data.battery }));
+        setBattery((batt) => ({ ...batt, [data.pid]: data.battery }));
       });
       EcgPlugin.addListener('ecgRawData', (data) => {
         ecgRawDatas.push(data);
@@ -167,19 +201,40 @@ const App: React.FC = () => {
       EcgPlugin.addListener('heartRate', (data) => {
         const rate = data.heartRate;
         heartRateGet = true;
-        console.log('heart rate', data, rate, beforeHeartRate);
-        setHeartRate(data.heartRate > 0 ? String(data.heartRate) : '-');
+        // console.log('heart rate', data, rate, beforeHeartRate);
+        // setHeartRate(data.heartRate > 0 ? String(data.heartRate) : '-');
+        document.getElementById('bpmbpm') &&
+          (document.getElementById('bpmbpm')!.innerText = `${
+            data.heartRate > 0 ? String(data.heartRate) : '-'
+          }bpm`);
+
+        document.getElementById('innerheart') &&
+          (document.getElementById('innerheart')!.innerText = `${
+            data.heartRate > 0 ? String(data.heartRate) : '-'
+          }bpm`);
         (window as any).heart =
           data.heartRate > 0 ? String(data.heartRate) : '-';
 
         if (Date.now() - beforeHeartTime > 1000 * 3 && rate > -1) {
           if (Math.abs(rate - beforeHeartRate) > 5 && beforeHeartRate > -1) {
-            setRed(true);
+            document.getElementById('bpmbpm')?.style.color &&
+              (document.getElementById('bpmbpm')!.style.color = 'red');
+
+            document.getElementById('innerheart')?.style.color &&
+              (document.getElementById('innerheart')!.style.color = 'red');
           } else {
-            setRed(false);
+            document.getElementById('bpmbpm')?.style.color &&
+              (document.getElementById('bpmbpm')!.style.color = 'green');
+
+            document.getElementById('innerheart')?.style.color &&
+              (document.getElementById('innerheart')!.style.color = 'green');
           }
           if (rate >= 135 || rate <= 60) {
-            setRed(true);
+            document.getElementById('bpmbpm')?.style.color &&
+              (document.getElementById('bpmbpm')!.style.color = 'red');
+
+            document.getElementById('innerheart')?.style.color &&
+              (document.getElementById('innerheart')!.style.color = 'red');
           }
           beforeHeartRate = rate;
           beforeHeartTime = Date.now();
@@ -231,14 +286,16 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const timer = setInterval(() => {
-      deviceState === 'online' &&
-        setTimeShow(
-          `${String(
-            new Date(Date.now() - connectedTimestamp).getUTCMinutes()
-          ).padStart(2, '0')}:${String(
-            new Date(Date.now() - connectedTimestamp).getUTCSeconds()
-          ).padStart(2, '0')}`
-        );
+      if (deviceState === 'online') {
+        const time = `${String(
+          new Date(Date.now() - connectedTimestamp).getUTCMinutes()
+        ).padStart(2, '0')}:${String(
+          new Date(Date.now() - connectedTimestamp).getUTCSeconds()
+        ).padStart(2, '0')}`;
+
+        document.getElementById('timetime') &&
+          (document.getElementById('timetime')!.innerText = time);
+      }
     }, 500);
 
     return () => {
@@ -344,6 +401,12 @@ const App: React.FC = () => {
 
   console.log('cur path', location.pathname);
 
+  useEffect(() => {
+    if (showDeviceList) {
+      startScan();
+    }
+  }, [showDeviceList])
+
   return (
     <EcgDeviceContext.Provider
       value={{
@@ -387,6 +450,30 @@ const App: React.FC = () => {
               </Route>
               <Route exact path="/time-set">
                 <TimeSet />
+              </Route>
+              <Route exact path="/welcome">
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    paddingTop: '100px',
+                    padding: '100px 30px',
+                  }}
+                >
+                  <h1>请点击下方按钮授权后</h1>
+                  <h1>重新开启本APP</h1>
+                  <div
+                    className="next-question"
+                    style={{ padding: '0 50px' }}
+                    onClick={() => {
+                      localStorage.setItem('welcome', '11');
+                      EcgPlugin.restart();
+                    }}
+                  >
+                    已授权
+                  </div>
+                </div>
               </Route>
               <Route exact path="/">
                 <Redirect to="/eva-list" />
@@ -467,13 +554,12 @@ const App: React.FC = () => {
                 <div className="ecg-status">
                   <div className="ecg-heart">❤️</div>
                   <div className="ecg-status-right">
-                    <div
-                      className="ecg-status-bpm"
-                      style={{ color: red ? 'red' : 'green' }}
-                    >
+                    <div className="ecg-status-bpm" id="bpmbpm">
                       {heartRate}bpm
                     </div>
-                    <div className="ecg-status-bpm">{timeShow}</div>
+                    <div className="ecg-status-bpm" id="timetime">
+                      {timeShow}
+                    </div>
                     <div className="pid">{curShowPid}</div>
                     <div className="pid" style={{ marginLeft: -4 }}>
                       🔋{battery[curShowPid]}%

@@ -15,6 +15,7 @@ import { useHistory } from 'react-router';
 import { UserInfo, login } from '../../api';
 import localforage from 'localforage';
 import { LoginMutation } from '../../__generated__/graphql';
+import { db } from '../../db';
 
 function Login() {
   const [username, setUsername] = useState('');
@@ -49,11 +50,11 @@ function Login() {
           className="save-button"
           style={{ marginTop: 40 }}
           onClick={async () => {
-            
+            db.reports.clear();
             const result = await login(username, password);
             localStorage.setItem('token', result?.accessToken);
             await localforage.setItem('user', result);
-            location.href = '/eva-list'
+            location.href = '/eva-list';
           }}
         >
           登录

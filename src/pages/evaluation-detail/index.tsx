@@ -48,6 +48,7 @@ function EvaluationDetail() {
   const [extra, setExtra] = useState({
     departmentEvaluationId: null,
     individualEvaluationId: null,
+    test_uuid: null,
   });
   const {
     connectToDevice,
@@ -138,6 +139,7 @@ function EvaluationDetail() {
       setExtra({
         individualEvaluationId: detail.individualEvaluationId,
         departmentEvaluationId: detail.departmentEvaluationId,
+        test_uuid: detail.test_uuid
       });
       setQuestions(
         questions?.ScaleQuestionRender?.map?.((question: any, idx: number) => ({

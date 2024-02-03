@@ -12,7 +12,7 @@ function useEvaList(): [list: Partial<ScaleEvaluation>[], refresh: () => void] {
       (await localforage.getItem<Partial<ScaleEvaluation>[]>('evaList')) ?? [];
     setEvaList(items);
     const r = await localforage.getItem<UserInfo>('user');
-    if (!r?.user?.id) {
+    if (!r?.user?.id && location.href !== '/settings') {
       history.push('/login');
       return;
     }

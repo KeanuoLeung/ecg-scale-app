@@ -27,6 +27,8 @@ const GET_LIST = gql(/* GraphQL */ `
         isEnable
         skipRule
         isSkip
+        type
+        test_uuid
       }
     }
   }
@@ -92,7 +94,9 @@ async function getList(userId: number) {
   const result = await client.query({
     query: GET_LIST,
     variables: { userId },
+    fetchPolicy: 'network-only'
   });
+  console.log('list result', result)
   return result?.data?.scaleEvaluations?.data ?? [];
 }
 

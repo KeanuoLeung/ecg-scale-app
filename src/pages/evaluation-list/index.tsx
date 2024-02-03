@@ -55,6 +55,7 @@ function EvaluationList() {
   const [connecting, setConnecting] = useState(false);
 
   const [opingEva, setOpingEva] = useState('');
+  const [realusername, setRealusername] = useState('');
   const [opingSettings, setOpingSettings] = useState(false);
 
   const [list, refresh] = useEvaList();
@@ -74,9 +75,15 @@ function EvaluationList() {
     for (const scale of list) {
       if (
         scale.releaseType === ReleaseType.SINGLE &&
-        reportsToUpload.some((report) => report.scaleUUId === scale.uuid)
+        reportsToUpload.some((report) => {
+          if (report.test_uuid === scale.test_uuid) {
+            return true;
+          }
+
+          return false;
+        })
       ) {
-        result.push(scale.uuid ?? '');
+        result.push(scale.test_uuid ?? 'Ï');
       }
 
       if (
@@ -94,6 +101,15 @@ function EvaluationList() {
     refresh();
     checkDisabled();
   });
+
+  useEffect(() => {
+    const re = setInterval(() => {
+      refresh();
+    }, 10000);
+    return () => {
+      clearInterval(re);
+    };
+  }, []);
 
   useEffect(() => {
     checkDisabled();
@@ -184,10 +200,12 @@ function EvaluationList() {
 
     localforage.getItem<UserInfo>('user').then((res) => {
       setUserName(res?.user?.realname ?? '用户');
-
+      setRealusername(res?.user?.username ?? '-');
       setUserType((res?.role as any) ?? 'ADMIN');
     });
   }, []);
+
+  console.log('evas', list);
 
   return (
     <IonPage style={{ overflow: 'scroll' }}>
@@ -311,7 +329,11 @@ function EvaluationList() {
           </span>
         </div>
         {/* <div id="reader" style={{ width: 600, display: 'none' }}></div> */}
+        <div className="list-subtitle" style={{ marginBottom: 2 }}>
+          用户名：{realusername}
+        </div>
         <div className="list-subtitle">请选择量表开始测试</div>
+
         {/* {debugMessages.map((msg) => (
           <div key={msg} className="list-subtitle">
             {msg}
@@ -335,49 +357,113 @@ function EvaluationList() {
           </div>
         </div>
         <div className="divider"></div>
-        {list.map((evaluation) => (
-          <div
-            className={`list-card ${
-              disabledReports.includes(evaluation.uuid ?? '?') && 'disabled'
-            }`}
-            key={evaluation.uuid}
-            onClick={() => {
-              if (disabledReports.includes(evaluation.uuid ?? '?')) {
-                alert('量表已失效');
-                return;
-              }
-              if (deviceState !== 'online') {
-                setOpingEva(evaluation.uuid ?? '');
-              } else {
-                history.push(`/eva-detail?uuid=${evaluation.uuid}`);
-              }
-              // history.push('/eva-detail');
-            }}
-          >
-            <div>
-              {evaluation.scaleName}
-              {disabledReports.includes(evaluation.uuid ?? '?')
-                ? '(已做完)'
-                : ''}
-            </div>
-            {userType === 'ADMIN' && (
-              <div className="list-card-date">
-                创建于：{new Date(evaluation.createdAt).toLocaleString()}
+        <div className="list-subtitle" style={{ marginBottom: 5 }}>
+          个人量表
+        </div>
+        {list
+          .filter((item) => item.type === 'individual')
+          .map((evaluation) => (
+            <div
+              className={`list-card ${
+                (disabledReports.includes(
+                  String(evaluation.test_uuid) ?? 'xxxx'
+                ) || evaluation.isTest) && 'disabled'
+              }`}
+              key={evaluation.uuid}
+              onClick={() => {
+                if (disabledReports.includes(evaluation.uuid ?? '?')) {
+                  alert('量表已失效');
+                  return;
+                }
+                if (deviceState !== 'online') {
+                  setOpingEva(evaluation.uuid ?? '');
+                } else {
+                  history.push(`/eva-detail?uuid=${evaluation.uuid}`);
+                }
+                // history.push('/eva-detail');
+              }}
+            >
+              <div>
+                {evaluation.scaleName}
+                {disabledReports.includes(evaluation.uuid ?? '?')
+                  ? '(已做完)'
+                  : ''}
               </div>
-            )}
-            {userType === 'USER' && (
-              <>
+              {userType === 'ADMIN' && (
                 <div className="list-card-date">
-                  开始：
-                  {new Date(evaluation.effectiveStartTime).toLocaleString()}
+                  创建于：{new Date(evaluation.createdAt).toLocaleString()}
                 </div>
+              )}
+              {userType === 'USER' && (
+                <>
+                  <div className="list-card-date">
+                    开始：
+                    {new Date(evaluation.effectiveStartTime).toLocaleString()}
+                  </div>
+                  <div className="list-card-date">
+                    结束：
+                    {new Date(evaluation.effectiveEndTime).toLocaleString()}
+                  </div>
+                </>
+              )}
+            </div>
+          ))}
+        <div className="divider"></div>
+        <div className="list-subtitle" style={{ marginBottom: 5 }}>
+          团体量表
+        </div>
+        {list
+          .filter((item) => item.type === 'department')
+          .map((evaluation) => (
+            <div
+              className={`list-card ${
+                (disabledReports.includes(
+                  String(evaluation.individualEvaluationId) ?? 'xxxx'
+                ) ||
+                  disabledReports.includes(
+                    String(evaluation.departmentEvaluationId) ?? 'xxxx'
+                  )) &&
+                'disabled'
+              }`}
+              key={evaluation.uuid}
+              onClick={() => {
+                if (disabledReports.includes(evaluation.uuid ?? '?')) {
+                  alert('量表已失效');
+                  return;
+                }
+                if (deviceState !== 'online') {
+                  setOpingEva(evaluation.uuid ?? '');
+                } else {
+                  history.push(`/eva-detail?uuid=${evaluation.uuid}`);
+                }
+                // history.push('/eva-detail');
+              }}
+            >
+              <div>
+                {evaluation.scaleName}
+                {disabledReports.includes(evaluation.uuid ?? '?')
+                  ? '(已做完)'
+                  : ''}
+              </div>
+              {userType === 'ADMIN' && (
                 <div className="list-card-date">
-                  结束：{new Date(evaluation.effectiveEndTime).toLocaleString()}
+                  创建于：{new Date(evaluation.createdAt).toLocaleString()}
                 </div>
-              </>
-            )}
-          </div>
-        ))}
+              )}
+              {userType === 'USER' && (
+                <>
+                  <div className="list-card-date">
+                    开始：
+                    {new Date(evaluation.effectiveStartTime).toLocaleString()}
+                  </div>
+                  <div className="list-card-date">
+                    结束：
+                    {new Date(evaluation.effectiveEndTime).toLocaleString()}
+                  </div>
+                </>
+              )}
+            </div>
+          ))}
       </div>
     </IonPage>
   );

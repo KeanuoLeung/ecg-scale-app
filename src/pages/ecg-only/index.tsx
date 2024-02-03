@@ -70,7 +70,7 @@ function EcgOnly() {
             }}
           >
             当前心率：
-            <span style={{ color: red ? 'red' : 'green' }}>{bpm}</span>
+            <span id='innerheart'>{bpm}</span>
           </div>
         </div>
         <ECGChart />

@@ -36,15 +36,18 @@ const ECGChart = () => {
     if (!ctx) {
       return;
     }
+    let frame = 0;
     function animate() {
       setTimeout(() => {
+        frame ++;
         console.log('animate 🍺');
         if (!canvas || !ctx) {
           return;
         }
-        console.log('raw points', (window as any).rawPoints, prevIndex, index)
+
         if ((window as any).rawPoints && (window as any).rawPoints.length) {
           data = (window as any).rawPoints;
+          console.log('raw points', data.length / frame)
           // 解析数据
 
           // 绘制心电图曲线
@@ -81,14 +84,14 @@ const ECGChart = () => {
           ctx.strokeStyle = 'green';
 
           prevIndex = index;
-          index = Math.min(index + 6, (window as any).rawPoints.length);
+          index = Math.min(index + 7, (window as any).rawPoints.length);
         }
 
         if (stoped) {
           return;
         }
         animate();
-      }, 20);
+      }, 25);
     }
     animate();
 

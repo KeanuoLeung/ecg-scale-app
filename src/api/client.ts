@@ -11,8 +11,11 @@ import { onError } from '@apollo/client/link/error';
 import localforage from 'localforage';
 
 const errorLink = onError(({ graphQLErrors, networkError }) => {
-  
-  if ((graphQLErrors as any)?.[0]?.extensions?.originalError?.statusCode === 401) {
+  if (
+    (graphQLErrors as any)?.[0]?.extensions?.originalError?.statusCode ===
+      401 &&
+    location.href !== '/settings'
+  ) {
     location.href = '/login';
   }
 });

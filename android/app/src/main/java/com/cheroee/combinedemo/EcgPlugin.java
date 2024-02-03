@@ -1,11 +1,22 @@
 package com.cheroee.combinedemo;
 
+import android.Manifest;
+import android.app.AlarmManager;
+import android.app.PendingIntent;
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 import android.widget.Toast;
+
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.core.content.IntentCompat;
 
 import com.cheroee.cherosdk.ChBatteryData;
 import com.cheroee.cherosdk.ChMsg;
@@ -35,6 +46,7 @@ import java.util.Optional;
 @CapacitorPlugin(name = "Ecg")
 public class EcgPlugin extends Plugin {
 
+    private boolean inited = false;
     String filePath = null;
     long lastTime = 0;
     private Handler mHandler;
@@ -58,6 +70,15 @@ public class EcgPlugin extends Plugin {
     @Override
     public void load() {
         super.load();
+        initPlugin();
+    }
+
+    public void initPlugin() {
+        this.inited = true;
+        showToast("插件初始化成功");
+        JSObject raw = new JSObject();
+        raw.put("success", true);
+        notifyListeners("plugin-init", raw);
         mHandler = new Handler() {
             @Override
             public void handleMessage(Message msg) {
@@ -66,18 +87,6 @@ public class EcgPlugin extends Plugin {
         };
         ChSdkManager.getInstance().init(mHandler, getActivity().getApplicationContext());
         checkLicense();
-
-
-//
-//        // SD卡正常挂载（可读写）
-//        if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())) {
-//            filePath = Environment.getExternalStorageDirectory().getPath() + File.separator + getActivity().getPackageName() + "/file";
-//        } else {
-//            filePath = Environment.getDataDirectory().getPath() + "/data/" + getActivity().getPackageName() + "/file";
-//        }
-////        }
-//        new File(filePath).mkdirs();
-        // ChSdkManager.getInstance().startScan(30000);
     }
 
     private void onReceviceEvent(Message msg) {
@@ -210,10 +219,24 @@ public class EcgPlugin extends Plugin {
     }
 
     @PluginMethod()
+    public void initEcgPlugin(PluginCall call) {
+        initPlugin();
+    }
+
+    @PluginMethod()
     public void startScan(PluginCall call) {
         deviceList = new ArrayList<>();
         int time = call.getInt("time");
+        showToast("开始扫描");
         ChSdkManager.getInstance().startScan(-1);
+    }
+
+    @PluginMethod()
+    public void restart() {
+        Intent intent = new Intent(getActivity().getApplicationContext(), MainActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        getActivity().getApplicationContext().startActivity(intent);
+        Runtime.getRuntime().exit(0);
     }
 
     @PluginMethod()
