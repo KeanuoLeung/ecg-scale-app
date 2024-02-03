@@ -90,7 +90,7 @@ function EvaluationList() {
         new Date(scale.effectiveStartTime).valueOf() > now ||
         new Date(scale.effectiveEndTime).valueOf() < now
       ) {
-        result.push(scale.uuid ?? '');
+        result.push(scale.test_uuid ?? '');
       }
     }
 
