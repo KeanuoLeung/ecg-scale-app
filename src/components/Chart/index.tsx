@@ -29,7 +29,7 @@ const ECGChart = () => {
 
     const ctx = canvas.getContext('2d');
     // 设置画布尺寸
-    const WIDTH = window.innerWidth;
+    const WIDTH = window.innerWidth + 20;
     canvas.width = (WIDTH - 40) * 2;
     canvas.height = 650 * 2;
 
@@ -39,7 +39,7 @@ const ECGChart = () => {
     let frame = 0;
     function animate() {
       setTimeout(() => {
-        frame ++;
+        frame++;
         console.log('animate 🍺');
         if (!canvas || !ctx) {
           return;
@@ -47,7 +47,7 @@ const ECGChart = () => {
 
         if ((window as any).rawPoints && (window as any).rawPoints.length) {
           data = (window as any).rawPoints;
-          console.log('raw points', data.length / frame)
+          console.log('raw points', data.length / frame);
           // 解析数据
 
           // 绘制心电图曲线
@@ -69,8 +69,8 @@ const ECGChart = () => {
               }
             } else {
               // ctx.clearRect(0, 0, 1000, 500);
-              const diff = row === 0 ? 180 : 380;
-              ctx.clearRect(x, row * 400, 10, 400);
+              const diff = row === 0 ? 180 : 480;
+              ctx.clearRect(x, row * 360, 10, row === 0 ? 360 : 600);
               ctx.beginPath();
               ctx.moveTo(prevX, prevY * ratio + diff);
               ctx.lineTo(x, y * ratio + diff);
@@ -105,7 +105,14 @@ const ECGChart = () => {
   return (
     <div style={{ position: 'relative', marginTop: 0 }}>
       <canvas
-        style={{ position: 'absolute', top: 0, left: 0, zIndex: 30, transform: 'scale(0.89)', transformOrigin: '0% 0%' }}
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          zIndex: 30,
+          transform: 'scale(0.89)',
+          transformOrigin: '0% 0%',
+        }}
         ref={canvasRef}
       ></canvas>
       <div style={{ position: 'absolute', top: 0, left: 0, zIndex: 10 }}>

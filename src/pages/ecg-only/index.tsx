@@ -29,7 +29,9 @@ function EcgOnly() {
 
   useEffect(() => {
     window.addEventListener('stop-monitor', () => {
-      history.goBack();
+      setTimeout(() => {
+        location.href = '/';
+      }, 1000);
     });
 
     const time = Number(localStorage.getItem('defaulttime') ?? '5');
@@ -70,7 +72,7 @@ function EcgOnly() {
             }}
           >
             当前心率：
-            <span id='innerheart'>{bpm}</span>
+            <span id="innerheart">{bpm}</span>
           </div>
         </div>
         <ECGChart />

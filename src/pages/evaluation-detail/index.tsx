@@ -16,6 +16,13 @@ import { UserInfo, saveReport } from '../../api';
 import { db } from '../../db';
 import makeArrayCsv from '../../tools/makeArrayCsv';
 
+import Radio from '@mui/material/Radio';
+import RadioGroup from '@mui/material/RadioGroup';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import FormControl from '@mui/material/FormControl';
+import FormLabel from '@mui/material/FormLabel';
+import TextField from '@mui/material/TextField';
+
 enum QuestionType {
   Single = 1,
   Multiple = 2,
@@ -50,7 +57,12 @@ function EvaluationDetail() {
     individualEvaluationId: null,
     test_uuid: null,
     uuid: '',
+    title: '',
   });
+  const [gender, setGender] = useState<0 | 1 | null>(null);
+  const [identificationCard, setIdentificationCard] = useState('');
+  const [age, setAge] = useState<number | null>(null);
+  const [unit, setUnit] = useState('');
   const {
     connectToDevice,
     debugMessages,
@@ -137,11 +149,15 @@ function EvaluationDetail() {
       const details: any[] = (await localforage.getItem('evaList')) ?? [];
       const detail = details.find((item) => item.test_uuid === scaleId);
       console.log('cur scale detail', detail);
+
+      const res = await localforage.getItem<UserInfo>('user');
+      const realUserName = res?.user?.username ?? '-';
       setExtra({
         individualEvaluationId: detail.individualEvaluationId,
         departmentEvaluationId: detail.departmentEvaluationId,
         test_uuid: detail.test_uuid,
         uuid: detail.uuid,
+        title: `${realUserName}-${detail.scaleName}`,
       });
       setQuestions(
         questions?.ScaleQuestionRender?.map?.((question: any, idx: number) => ({
@@ -250,6 +266,10 @@ function EvaluationDetail() {
         timestamp: Date.now(),
         realName: username,
         phone: phone,
+        gender: gender as number,
+        identificationCard,
+        age: age as number,
+        unit,
         ...extra,
       });
       history.back();
@@ -405,20 +425,74 @@ function EvaluationDetail() {
           <div className="detail-card">
             <div className="question-type">信息录入</div>
             <div className="detail-title">请输入受试者的个人信息</div>
-            <div>
-              <input
-                className="question-item-input"
-                placeholder="受试者姓名"
+            <div style={{ marginTop: 12 }}>
+              <TextField
+                id="standard-basic"
+                label="受试者姓名"
+                variant="standard"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
+                style={{ width: '100%' }}
               />
             </div>
-            <div>
-              <input
-                className="question-item-input"
-                placeholder="受试者手机号"
+            <div style={{ marginTop: 12 }}>
+              <TextField
+                id="standard-basic"
+                label="受试者手机号"
+                variant="standard"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
+                style={{ width: '100%' }}
+              />
+            </div>
+            <div style={{ marginTop: 12 }}>
+              <FormControl>
+                <FormLabel id="demo-row-radio-buttons-group-label">
+                  性别
+                </FormLabel>
+                <RadioGroup
+                  row
+                  value={gender}
+                  onChange={(e: any) => {
+                    setGender(e.target.value);
+                  }}
+                  aria-labelledby="demo-row-radio-buttons-group-label"
+                  name="row-radio-buttons-group"
+                >
+                  <FormControlLabel value={0} control={<Radio />} label="男" />
+                  <FormControlLabel value={1} control={<Radio />} label="女" />
+                </RadioGroup>
+              </FormControl>
+            </div>
+            <div style={{ marginTop: 2 }}>
+              <TextField
+                id="standard-basic"
+                label="年龄"
+                variant="standard"
+                type="number"
+                value={age}
+                onChange={(e) => setAge(e.target.value as any)}
+                style={{ width: '100%' }}
+              />
+            </div>
+            <div style={{ marginTop: 12 }}>
+              <TextField
+                id="standard-basic"
+                label="证件号"
+                variant="standard"
+                value={identificationCard}
+                onChange={(e) => setIdentificationCard(e.target.value)}
+                style={{ width: '100%' }}
+              />
+            </div>
+            <div style={{ marginTop: 12 }}>
+              <TextField
+                id="standard-basic"
+                label="单位"
+                variant="standard"
+                value={unit}
+                onChange={(e) => setUnit(e.target.value)}
+                style={{ width: '100%' }}
               />
             </div>
             <div className="question-spacer"></div>
@@ -431,6 +505,22 @@ function EvaluationDetail() {
                 }
                 if (!phone) {
                   alert('请先填写受试者手机号');
+                  return;
+                }
+                if (gender === null) {
+                  alert('请先填写性别');
+                  return;
+                }
+                if (!identificationCard) {
+                  alert('请先填写身份证号');
+                  return;
+                }
+                if (age === null) {
+                  alert('请先填写性别');
+                  return;
+                }
+                if (!unit) {
+                  alert('请先填写单位');
                   return;
                 }
                 setUserchecked(true);

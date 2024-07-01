@@ -17,6 +17,8 @@ const documents = {
     "\n  query getScaleQuestions($scaleId: String!) {\n    getScaleQuestionByScaleUUIDWithTitleAndInstructions(uuid: $scaleId) {\n      ScaleQuestionRender {\n        answer {\n          answerGroupCode\n          name\n          id\n          uuid\n          picture\n        }\n        answerGroupCode\n        name\n        questionImg\n        type\n        id\n      }\n      title\n    }\n  }\n": types.GetScaleQuestionsDocument,
     "\n  mutation saveReport(\n    $report: ReportQuestionChooseUseQuestionidAndAnsweridInput!\n  ) {\n    saveReportQuestionChooseUseQuestionidAndAnswerid(\n      reportQuestionChooseUseQuestionidAndAnsweridInput: $report\n    )\n  }\n": types.SaveReportDocument,
     "\n  mutation saveHrvReport($report: EcgHrvReportInput!) {\n    saveEcgHrvReport(ecgHrvReportInput: $report) {\n      success\n      message\n    }\n  }\n": types.SaveHrvReportDocument,
+    "\n  query verifyUserEcgTest {\n    verifyUserEcgTest {\n      success\n      isTest\n      msg\n      count\n    }\n  }\n": types.VerifyUserEcgTestDocument,
+    "\n  mutation updateUserEcgState {\n    updateUserEcgState {\n      success\n      msg\n    }\n  }\n": types.UpdateUserEcgStateDocument,
     "\n  mutation login($username: String!, $password: String!) {\n    login(data: { username: $username, password: $password }) {\n      accessToken\n      user {\n        id\n        isAdmin\n        username\n        realname\n      }\n      role\n    }\n  }\n": types.LoginDocument,
 };
 
@@ -50,6 +52,14 @@ export function gql(source: "\n  mutation saveReport(\n    $report: ReportQuesti
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function gql(source: "\n  mutation saveHrvReport($report: EcgHrvReportInput!) {\n    saveEcgHrvReport(ecgHrvReportInput: $report) {\n      success\n      message\n    }\n  }\n"): (typeof documents)["\n  mutation saveHrvReport($report: EcgHrvReportInput!) {\n    saveEcgHrvReport(ecgHrvReportInput: $report) {\n      success\n      message\n    }\n  }\n"];
+/**
+ * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function gql(source: "\n  query verifyUserEcgTest {\n    verifyUserEcgTest {\n      success\n      isTest\n      msg\n      count\n    }\n  }\n"): (typeof documents)["\n  query verifyUserEcgTest {\n    verifyUserEcgTest {\n      success\n      isTest\n      msg\n      count\n    }\n  }\n"];
+/**
+ * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function gql(source: "\n  mutation updateUserEcgState {\n    updateUserEcgState {\n      success\n      msg\n    }\n  }\n"): (typeof documents)["\n  mutation updateUserEcgState {\n    updateUserEcgState {\n      success\n      msg\n    }\n  }\n"];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

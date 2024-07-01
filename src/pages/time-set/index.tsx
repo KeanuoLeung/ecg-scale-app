@@ -31,6 +31,10 @@ function TimeSet() {
         <div
           className="save-button"
           onClick={() => {
+            if (Number(url) < 5) {
+              alert('请设置不少于 5 分钟的时间');
+              return;
+            }
             localStorage.setItem('defaulttime', String(url));
             history.goBack();
           }}

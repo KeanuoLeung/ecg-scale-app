@@ -69,10 +69,7 @@ function SyncList() {
         {list.map((record) => (
           <div className={`list-card`} key={record.uuid}>
             <div>
-              {record.isEcg
-                ? '心电测试数据'
-                : evalist.find((item) => item.uuid === record.scaleUUId)
-                    ?.scaleName}
+              {record.title}
             </div>
             <div>{record.synced ? '已同步' : '未同步'}</div>
             <div>提交时间: {new Date(record.timestamp).toLocaleString()}</div>

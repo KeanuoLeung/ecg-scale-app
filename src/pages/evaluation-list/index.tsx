@@ -19,9 +19,11 @@ import { v4 as uuid } from 'uuid';
 import {
   UserInfo,
   getList,
+  getTest,
   saveHrvReport,
   saveOriginalCsv,
   saveReport,
+  updateTest,
 } from '../../api';
 import useEvaList from '../../api/useEvaList';
 import { ReleaseType } from '../../constants/type';
@@ -36,6 +38,8 @@ type Evaluation = {
   effectiveEndTime: string;
   isEnable: boolean;
 };
+
+(window as any).upTest = updateTest
 
 function EvaluationList() {
   const history = useHistory();
@@ -52,6 +56,7 @@ function EvaluationList() {
 
   const [userType, setUserType] = useState<'ADMIN' | 'USER'>('USER');
   const [disabledReports, setDisabledReports] = useState<string[]>([]);
+  const [outdatedReports, setOutdatedReports] = useState<string[]>([]);
   const [connecting, setConnecting] = useState(false);
 
   const [opingEva, setOpingEva] = useState('');
@@ -70,18 +75,20 @@ function EvaluationList() {
     const reportsToUpload = await db.reports.toArray();
 
     const result = [];
+    const outdated = [];
     const now = Date.now();
 
     for (const scale of list) {
       if (
         scale.releaseType === ReleaseType.SINGLE &&
-        reportsToUpload.some((report) => {
+        (reportsToUpload.some((report) => {
           if (report.test_uuid === scale.test_uuid) {
             return true;
           }
 
           return false;
-        })
+        }) ||
+          scale.isTest)
       ) {
         result.push(scale.test_uuid ?? 'Ï');
       }
@@ -90,13 +97,14 @@ function EvaluationList() {
         new Date(scale.effectiveStartTime).valueOf() > now ||
         new Date(scale.effectiveEndTime).valueOf() < now
       ) {
-        result.push(scale.test_uuid ?? '');
+        outdated.push(scale.test_uuid ?? '');
       }
     }
 
     console.log('check disabled', { reportsToUpload, disabledReports, result });
 
     setDisabledReports(result);
+    setOutdatedReports(outdated);
   };
 
   useIonViewDidEnter(() => {
@@ -125,71 +133,79 @@ function EvaluationList() {
         return;
       }
       syncing = true;
-      const reports = (await db.reports.toArray()).filter(
-        (resport) => !resport.synced
-      );
-
-      const ecgs = (await db.ecgRecords.toArray()).filter((ecg) => !ecg.synced);
-
-      for (const report of reports) {
-        const success = await saveReport({
-          QuestionidAndAnsweridInput: report.evaReport,
-          scaleUUid: report.scaleUUId,
-          realname: report.realName ?? '',
-          phone: report.phone ?? '',
-          uuid: report.uuid ?? '',
-          departmentEvaluationId: report.departmentEvaluationId,
-          individualEvaluationId: report.individualEvaluationId,
-        });
-
-        if (success) {
-          report.id && db.reports.update(report.id, { synced: true });
+      try {
+        const reports = (await db.reports.toArray()).filter(
+          (resport) => !resport.synced
+        );
+  
+        const ecgs = (await db.ecgRecords.toArray()).filter((ecg) => !ecg.synced);
+  
+        for (const report of reports) {
+          const success = await saveReport({
+            QuestionidAndAnsweridInput: report.evaReport,
+            scaleUUid: report.scaleUUId,
+            realname: report.realName ?? '',
+            phone: report.phone ?? '',
+            uuid: report.uuid ?? '',
+            departmentEvaluationId: report.departmentEvaluationId,
+            individualEvaluationId: report.individualEvaluationId,
+            gender: Number(report.gender ?? 0),
+            identificationCard: report.identificationCard,
+            age: Number(report.age ?? 0),
+            unit: report.unit,
+          });
+  
+          if (success) {
+            report.id && db.reports.update(report.id, { synced: true });
+          }
         }
-      }
-
-      for (const ecg of ecgs) {
-        const {
-          id,
-          originalEcgData,
-          chDetectionResult,
-          hrvReport,
-          userId,
-          reportUUIDList,
-        } = ecg;
-        // 心电数据
-        if (originalEcgData && chDetectionResult && hrvReport) {
-          const _uuid = uuid();
-          console.log('[syncing ecg]', {
+  
+        for (const ecg of ecgs) {
+          const {
+            id,
             originalEcgData,
             chDetectionResult,
             hrvReport,
-          });
-          await saveOriginalCsv({
-            time: Date.now(),
-            userId: String(userId),
-            scaleId: '',
-            uuid: _uuid,
-            type: 'originalEcgData',
-            value: originalEcgData,
-            reportUUIDList: reportUUIDList ?? [],
-          });
-          await saveOriginalCsv({
-            time: Date.now(),
-            userId: String(userId),
-            scaleId: '',
-            uuid: _uuid,
-            type: 'chDetectionResult',
-            value: chDetectionResult,
-            reportUUIDList: reportUUIDList ?? [],
-          });
-          await saveHrvReport({
-            ...hrvReport,
-            reportUuidList: reportUUIDList ?? [],
-            uuid: _uuid,
-            userId: userId,
-          });
-          id && db.ecgRecords.update(id, { synced: true });
+            userId,
+            reportUUIDList,
+          } = ecg;
+          // 心电数据
+          if (originalEcgData && chDetectionResult && hrvReport) {
+            const _uuid = uuid();
+            console.log('[syncing ecg]', {
+              originalEcgData,
+              chDetectionResult,
+              hrvReport,
+            });
+            await saveOriginalCsv({
+              time: Date.now(),
+              userId: String(userId),
+              scaleId: '',
+              uuid: _uuid,
+              type: 'originalEcgData',
+              value: originalEcgData,
+              reportUUIDList: reportUUIDList ?? [],
+            });
+            await saveOriginalCsv({
+              time: Date.now(),
+              userId: String(userId),
+              scaleId: '',
+              uuid: _uuid,
+              type: 'chDetectionResult',
+              value: chDetectionResult,
+              reportUUIDList: reportUUIDList ?? [],
+            });
+            await saveHrvReport({
+              ...hrvReport,
+              reportUuidList: reportUUIDList ?? [],
+              uuid: _uuid,
+              userId: userId,
+            });
+            id && db.ecgRecords.update(id, { synced: true });
+          }
         }
+      } catch(e) {
+        syncing = false;
       }
       syncing = false;
     }
@@ -206,6 +222,18 @@ function EvaluationList() {
       setUserType((res?.role as any) ?? 'ADMIN');
     });
   }, []);
+
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    setInterval(() => {
+      getTest().then((test: any) => {
+        console.log('test', test);
+        setCount(test.count);
+      });
+    }, 1000);
+  }, []);
+
 
   console.log('evas', list);
 
@@ -336,31 +364,38 @@ function EvaluationList() {
         <div className="list-subtitle" style={{ marginBottom: 2 }}>
           用户名：{realusername}
         </div>
-        <div className="list-subtitle">请选择量表开始测试</div>
+        <div className="list-subtitle" style={{ marginBottom: 2 }}>
+          请选择量表开始测试
+        </div>
+        <div className="list-subtitle">剩余心电测试次数：{count}次</div>
 
         {/* {debugMessages.map((msg) => (
           <div key={msg} className="list-subtitle">
             {msg}
           </div>
         ))} */}
-        <div
-          className={`list-card`}
-          onClick={() => {
-            // history.push('/eva-detail');
-          }}
-        >
-          <div
-            onClick={async () => {
-              const result = await connectToDevice();
-              if (result) {
-                history.push('/ecg-only');
-              }
-            }}
-          >
-            ❤️ 进行心率变异性测试
-          </div>
-        </div>
-        <div className="divider"></div>
+        {count > 0 && (
+          <>
+            <div
+              className={`list-card`}
+              onClick={() => {
+                // history.push('/eva-detail');
+              }}
+            >
+              <div
+                onClick={async () => {
+                  const result = await connectToDevice();
+                  if (result) {
+                    history.push('/ecg-only');
+                  }
+                }}
+              >
+                ❤️ 进行心率变异性测试
+              </div>
+            </div>
+            <div className="divider"></div>
+          </>
+        )}
         <div className="list-subtitle" style={{ marginBottom: 5 }}>
           个人量表
         </div>
@@ -372,14 +407,22 @@ function EvaluationList() {
                 (disabledReports.includes(
                   String(evaluation.test_uuid) ?? 'xxxx'
                 ) ||
-                  (evaluation.isTest &&
-                    evaluation.releaseType === ReleaseType.SINGLE)) &&
+                  outdatedReports.includes(evaluation.test_uuid ?? '') ||
+                  !evaluation.isEnable) &&
                 'disabled'
               }`}
               key={evaluation.test_uuid}
               onClick={() => {
-                if (disabledReports.includes(evaluation.test_uuid ?? '?')) {
+                if (
+                  disabledReports.includes(evaluation.test_uuid ?? '?') ||
+                  outdatedReports.includes(evaluation.test_uuid ?? '') ||
+                  !evaluation.isEnable
+                ) {
                   alert('量表已失效');
+                  return;
+                }
+                if (count === 0) {
+                  history.push(`/eva-detail?uuid=${evaluation.test_uuid}`);
                   return;
                 }
                 if (deviceState !== 'online') {
@@ -397,6 +440,9 @@ function EvaluationList() {
                   evaluation.releaseType === ReleaseType.SINGLE)
                   ? '(已做完)'
                   : ''}
+                {(!evaluation.isEnable ||
+                  outdatedReports.includes(evaluation.test_uuid ?? '')) &&
+                  '(无效)'}
               </div>
               {userType === 'ADMIN' && (
                 <div className="list-card-date">
@@ -429,14 +475,23 @@ function EvaluationList() {
                 (disabledReports.includes(
                   String(evaluation.test_uuid) ?? 'xxxx'
                 ) ||
+                  !evaluation.isEnable ||
                   (evaluation.isTest &&
                     evaluation.releaseType === ReleaseType.SINGLE)) &&
                 'disabled'
               }`}
               key={evaluation.test_uuid}
               onClick={() => {
-                if (disabledReports.includes(evaluation.test_uuid ?? '?')) {
+                if (
+                  disabledReports.includes(evaluation.test_uuid ?? '?') ||
+                  outdatedReports.includes(evaluation.test_uuid ?? '') ||
+                  !evaluation.isEnable
+                ) {
                   alert('量表已失效');
+                  return;
+                }
+                if (count === 0) {
+                  history.push(`/eva-detail?uuid=${evaluation.test_uuid}`);
                   return;
                 }
                 if (deviceState !== 'online') {
@@ -454,6 +509,9 @@ function EvaluationList() {
                   evaluation.releaseType === ReleaseType.SINGLE)
                   ? '(已做完)'
                   : ''}
+                {(!evaluation.isEnable ||
+                  outdatedReports.includes(evaluation.test_uuid ?? '')) &&
+                  '(无效)'}
               </div>
               {userType === 'ADMIN' && (
                 <div className="list-card-date">

@@ -14,9 +14,14 @@ export interface Report {
   synced?: boolean;
   realName?: string;
   phone?: string;
+  gender: number;
+  identificationCard: string;
+  age: number;
+  unit: string;
   departmentEvaluationId?: number | null;
   individualEvaluationId?: number | null;
   test_uuid?: string | null;
+  title?: string;
 }
 
 export interface EcgRecord {
@@ -28,6 +33,7 @@ export interface EcgRecord {
   hrvReport?: HrvReport;
   reportUUIDList?: string[];
   userId: number;
+  title?: string;
 }
 
 export class DB extends Dexie {
@@ -38,9 +44,9 @@ export class DB extends Dexie {
     super('report');
     this.version(2).stores({
       reports:
-        '++id, uuid, scaleUUId, userId, evaReport, originalEcgData, chDetectionResult, hrvReport, timestamp, synced, realName, phone, departmentEvaluationId, individualEvaluationId',
+        '++id, uuid, scaleUUId, userId, evaReport, originalEcgData, chDetectionResult, hrvReport, timestamp, synced, realName, phone, departmentEvaluationId, individualEvaluationId, title, gender, identificationCard, age, unit',
       ecgRecords:
-        '++id, originalEcgData, chDetectionResult, timestamp, synced, hrvReport, reportUUIDList, userId',
+        '++id, originalEcgData, chDetectionResult, timestamp, synced, hrvReport, reportUUIDList, userId, title',
     });
   }
 }

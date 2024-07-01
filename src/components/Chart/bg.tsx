@@ -17,7 +17,7 @@ function Bg() {
                 y={row * SIZE}
                 width={SIZE}
                 height={SIZE}
-                stroke="#ddd"
+                stroke="#f84c4c"
                 fill="#fff"
                 strokeWidth={1}
               />

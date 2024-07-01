@@ -75,6 +75,26 @@ const SAVE_HRV_REPORT = gql(/* GraphQL */ `
   }
 `);
 
+const VERIFY_USER_ECG_TEST = gql(/* GraphQL */ `
+  query verifyUserEcgTest {
+    verifyUserEcgTest {
+      success
+      isTest
+      msg
+      count
+    }
+  }
+`);
+
+const UPDATE_USER_ECG_STATE = gql(/* GraphQL */ `
+  mutation updateUserEcgState {
+    updateUserEcgState {
+      success
+      msg
+    }
+  }
+`);
+
 const LOGIN = gql(/* GraphQL */ `
   mutation login($username: String!, $password: String!) {
     login(data: { username: $username, password: $password }) {
@@ -94,9 +114,9 @@ async function getList(userId: number) {
   const result = await client.query({
     query: GET_LIST,
     variables: { userId },
-    fetchPolicy: 'network-only'
+    fetchPolicy: 'network-only',
   });
-  console.log('list result', result)
+  console.log('list result', result);
   return result?.data?.scaleEvaluations?.data ?? [];
 }
 
@@ -128,6 +148,18 @@ async function saveHrvReport(report: EcgHrvReportInput) {
   return result.data?.saveEcgHrvReport;
 }
 
+async function getTest() {
+  const result = await client.query({ query: VERIFY_USER_ECG_TEST, fetchPolicy: 'network-only' });
+  return result.data?.verifyUserEcgTest;
+}
+
+async function updateTest() {
+  const result = await client.mutate({
+    mutation: UPDATE_USER_ECG_STATE,
+  });
+  return result.data?.updateUserEcgState;
+}
+
 async function login(username: string, password: string) {
   const result = await client.mutate({
     mutation: LOGIN,
@@ -149,7 +181,7 @@ async function saveOriginalCsv(props: {
     [new Blob([props.value])],
     `${props.time}_${props.userId}_${props.scaleId}_${props.uuid}_${props.type}.csv`
   );
-  
+
   const formdata = new FormData();
   formdata.append('file', file);
   formdata.append('reportUuidList', JSON.stringify(props.reportUUIDList));
@@ -170,4 +202,6 @@ export {
   login,
   saveHrvReport,
   saveOriginalCsv,
+  getTest,
+  updateTest,
 };

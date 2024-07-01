@@ -45,6 +45,11 @@ export type AccessoryCreateInput = {
   type?: InputMaybe<Scalars['String']['input']>;
 };
 
+export type AccessoryPagination = {
+  page: Scalars['Int']['input'];
+  pageSize: Scalars['Int']['input'];
+};
+
 export type AccessoryUpdateInput = {
   amount?: InputMaybe<Scalars['Int']['input']>;
   brand?: InputMaybe<Scalars['String']['input']>;
@@ -222,11 +227,13 @@ export type CommonScaleData = {
 export type ComprehensiveReport = {
   __typename?: 'ComprehensiveReport';
   hrvReport_ecgInfo?: Maybe<Scalars['String']['output']>;
+  hrvReport_testAnalysis?: Maybe<Scalars['String']['output']>;
   hrvReport_testChart?: Maybe<Scalars['String']['output']>;
   hrvReport_userInfo?: Maybe<Scalars['String']['output']>;
   mindBodyDiagnosisContent?: Maybe<Scalars['String']['output']>;
   mindBodyDiagnosisTitle?: Maybe<Scalars['String']['output']>;
   scaleReports_result?: Maybe<Scalars['String']['output']>;
+  scaleReports_testAnalysis?: Maybe<Scalars['String']['output']>;
   signature?: Maybe<Scalars['String']['output']>;
 };
 
@@ -366,6 +373,7 @@ export type CreateIndividualEvaluationInput = {
   isEnable: Scalars['Int']['input'];
   releaseTopic: Scalars['String']['input'];
   releaseType: Scalars['Int']['input'];
+  remark?: InputMaybe<Scalars['String']['input']>;
   scaleList: Array<Scalars['Int']['input']>;
   userList: Array<Scalars['Int']['input']>;
 };
@@ -563,6 +571,17 @@ export type FactorInfo = {
   tranformula?: Maybe<Scalars['String']['output']>;
   updatedAt: Scalars['DateTime']['output'];
   uuid: Scalars['String']['output'];
+};
+
+export type FindAccessory = {
+  __typename?: 'FindAccessory';
+  accessories?: Maybe<Array<Accessory>>;
+  /** Identifies the date and time when the object was created. */
+  createdAt: Scalars['DateTime']['output'];
+  id: Scalars['ID']['output'];
+  total: Scalars['Int']['output'];
+  /** Identifies the date and time when the object was last updated. */
+  updatedAt: Scalars['DateTime']['output'];
 };
 
 export type FindDeInput = {
@@ -796,6 +815,7 @@ export type GetUserInformationTableData = {
   realname?: InputMaybe<Scalars['String']['input']>;
   role?: InputMaybe<Scalars['String']['input']>;
   subDepartmentId?: InputMaybe<Scalars['Int']['input']>;
+  unit?: InputMaybe<Scalars['String']['input']>;
   username?: InputMaybe<Scalars['String']['input']>;
 };
 
@@ -979,6 +999,7 @@ export type IndividualEvaluation = {
   realnames?: Maybe<Array<Scalars['String']['output']>>;
   releaseTopic?: Maybe<Scalars['String']['output']>;
   releaseType?: Maybe<Scalars['Int']['output']>;
+  remark?: Maybe<Scalars['String']['output']>;
   scaleNames?: Maybe<Array<Scalars['String']['output']>>;
   scalesList?: Maybe<Array<Scalars['Int']['output']>>;
   updatedAt?: Maybe<Scalars['DateTime']['output']>;
@@ -1431,11 +1452,6 @@ export type MutationUpdateUserByIdArgs = {
 };
 
 
-export type MutationUpdateUserEcgStateArgs = {
-  authUserId: Scalars['Int']['input'];
-};
-
-
 export type MutationUpdateWarningArgs = {
   data: UpdateWarningInput;
   id: Scalars['Int']['input'];
@@ -1471,10 +1487,10 @@ export type Query = {
   __typename?: 'Query';
   answerGetAllSclaeQuestion: GetAllScaleQuestionReturnType;
   consulationRecords: GetAllConsulationRecord;
+  createAccount: Scalars['String']['output'];
   departmentEvaluations: GetAllDepartmentEvaluation;
   departments: Array<Department>;
-  findAccessory: Array<Accessory>;
-  findAccessoryByCode?: Maybe<Array<Accessory>>;
+  findAccessory: FindAccessory;
   findAccessoryById: Accessory;
   findAccessoryPagination: PagResponse;
   findComprehensiveReport: ComprehensiveReportResult;
@@ -1572,12 +1588,9 @@ export type QueryDepartmentEvaluationsArgs = {
 
 
 export type QueryFindAccessoryArgs = {
-  type: Scalars['String']['input'];
-};
-
-
-export type QueryFindAccessoryByCodeArgs = {
   code: Scalars['String']['input'];
+  pagination: AccessoryPagination;
+  type: Scalars['String']['input'];
 };
 
 
@@ -1932,11 +1945,15 @@ export type ReportQuestionChooseInput = {
 
 export type ReportQuestionChooseUseQuestionidAndAnsweridInput = {
   QuestionidAndAnsweridInput: Array<QuestionidAndAnsweridInput>;
+  age: Scalars['Int']['input'];
   departmentEvaluationId?: InputMaybe<Scalars['Int']['input']>;
+  gender: Scalars['Int']['input'];
+  identificationCard: Scalars['String']['input'];
   individualEvaluationId?: InputMaybe<Scalars['Int']['input']>;
   phone: Scalars['String']['input'];
   realname: Scalars['String']['input'];
   scaleUUid: Scalars['String']['input'];
+  unit: Scalars['String']['input'];
   uuid: Scalars['String']['input'];
 };
 
@@ -2535,6 +2552,7 @@ export type UserIdList = {
 
 export type VerifyUserEcgTestInput = {
   __typename?: 'VerifyUserEcgTestInput';
+  count: Scalars['Int']['output'];
   isTest: Scalars['Boolean']['output'];
   msg: Scalars['String']['output'];
   success: Scalars['Boolean']['output'];
@@ -2627,6 +2645,16 @@ export type SaveHrvReportMutationVariables = Exact<{
 
 export type SaveHrvReportMutation = { __typename?: 'Mutation', saveEcgHrvReport: { __typename?: 'ecgResponse', success: boolean, message: string } };
 
+export type VerifyUserEcgTestQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type VerifyUserEcgTestQuery = { __typename?: 'Query', verifyUserEcgTest: { __typename?: 'VerifyUserEcgTestInput', success: boolean, isTest: boolean, msg: string, count: number } };
+
+export type UpdateUserEcgStateMutationVariables = Exact<{ [key: string]: never; }>;
+
+
+export type UpdateUserEcgStateMutation = { __typename?: 'Mutation', updateUserEcgState: { __typename?: 'UpdateUserEcgTestInput', success: boolean, msg: string } };
+
 export type LoginMutationVariables = Exact<{
   username: Scalars['String']['input'];
   password: Scalars['String']['input'];
@@ -2640,4 +2668,6 @@ export const GetEvaluationsDocument = {"kind":"Document","definitions":[{"kind":
 export const GetScaleQuestionsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"getScaleQuestions"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"scaleId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"getScaleQuestionByScaleUUIDWithTitleAndInstructions"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"uuid"},"value":{"kind":"Variable","name":{"kind":"Name","value":"scaleId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"ScaleQuestionRender"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"answer"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"answerGroupCode"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"uuid"}},{"kind":"Field","name":{"kind":"Name","value":"picture"}}]}},{"kind":"Field","name":{"kind":"Name","value":"answerGroupCode"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"questionImg"}},{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"id"}}]}},{"kind":"Field","name":{"kind":"Name","value":"title"}}]}}]}}]} as unknown as DocumentNode<GetScaleQuestionsQuery, GetScaleQuestionsQueryVariables>;
 export const SaveReportDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"saveReport"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"report"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ReportQuestionChooseUseQuestionidAndAnsweridInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"saveReportQuestionChooseUseQuestionidAndAnswerid"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"reportQuestionChooseUseQuestionidAndAnsweridInput"},"value":{"kind":"Variable","name":{"kind":"Name","value":"report"}}}]}]}}]} as unknown as DocumentNode<SaveReportMutation, SaveReportMutationVariables>;
 export const SaveHrvReportDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"saveHrvReport"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"report"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"EcgHrvReportInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"saveEcgHrvReport"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"ecgHrvReportInput"},"value":{"kind":"Variable","name":{"kind":"Name","value":"report"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"success"}},{"kind":"Field","name":{"kind":"Name","value":"message"}}]}}]}}]} as unknown as DocumentNode<SaveHrvReportMutation, SaveHrvReportMutationVariables>;
+export const VerifyUserEcgTestDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"verifyUserEcgTest"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"verifyUserEcgTest"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"success"}},{"kind":"Field","name":{"kind":"Name","value":"isTest"}},{"kind":"Field","name":{"kind":"Name","value":"msg"}},{"kind":"Field","name":{"kind":"Name","value":"count"}}]}}]}}]} as unknown as DocumentNode<VerifyUserEcgTestQuery, VerifyUserEcgTestQueryVariables>;
+export const UpdateUserEcgStateDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"updateUserEcgState"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"updateUserEcgState"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"success"}},{"kind":"Field","name":{"kind":"Name","value":"msg"}}]}}]}}]} as unknown as DocumentNode<UpdateUserEcgStateMutation, UpdateUserEcgStateMutationVariables>;
 export const LoginDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"login"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"username"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"password"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"login"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"data"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"username"},"value":{"kind":"Variable","name":{"kind":"Name","value":"username"}}},{"kind":"ObjectField","name":{"kind":"Name","value":"password"},"value":{"kind":"Variable","name":{"kind":"Name","value":"password"}}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"accessToken"}},{"kind":"Field","name":{"kind":"Name","value":"user"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"isAdmin"}},{"kind":"Field","name":{"kind":"Name","value":"username"}},{"kind":"Field","name":{"kind":"Name","value":"realname"}}]}},{"kind":"Field","name":{"kind":"Name","value":"role"}}]}}]}}]} as unknown as DocumentNode<LoginMutation, LoginMutationVariables>;

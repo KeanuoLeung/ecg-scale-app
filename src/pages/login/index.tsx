@@ -50,11 +50,15 @@ function Login() {
           className="save-button"
           style={{ marginTop: 40 }}
           onClick={async () => {
-            db.reports.clear();
-            const result = await login(username, password);
-            localStorage.setItem('token', result?.accessToken);
-            await localforage.setItem('user', result);
-            location.href = '/eva-list';
+            try {
+              db.reports.clear();
+              const result = await login(username, password);
+              localStorage.setItem('token', result?.accessToken);
+              await localforage.setItem('user', result);
+              location.href = '/eva-list';
+            } catch (e) {
+              alert('密码错误');
+            }
           }}
         >
           登录

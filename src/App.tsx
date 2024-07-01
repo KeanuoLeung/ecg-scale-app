@@ -53,7 +53,7 @@ import SyncList from './pages/sync-list';
 import EcgOnly from './pages/ecg-only';
 import { db } from './db';
 import localforage from 'localforage';
-import { UserInfo } from './api';
+import { UserInfo, updateTest } from './api';
 import TimeSet from './pages/time-set';
 
 setupIonicReact();
@@ -156,7 +156,7 @@ const App: React.FC = () => {
       setDeviceList(data.devices);
       console.log('devices', data);
     });
-    
+
     (window as any).scan = () => {
       startScan();
     };
@@ -340,6 +340,9 @@ const App: React.FC = () => {
       if (deviceState === 'online') {
         const result = await stopMonitor();
         const { ecgRawDatas, ecgResults, hrvReport } = result;
+        updateTest();
+        const res = await localforage.getItem<UserInfo>('user');
+        const realUserName = res?.user?.username ?? '-';
         db.ecgRecords.add({
           reportUUIDList: reportUUIDs,
           originalEcgData: makeArrayCsv(ecgRawDatas ?? []),
@@ -350,11 +353,16 @@ const App: React.FC = () => {
           userId:
             Number((await localforage.getItem<UserInfo>('user'))?.user?.id) ??
             0,
+          title: `${realUserName}-心电测试记录`,
         });
         const event = new CustomEvent('stop-monitor');
         window.dispatchEvent(event);
         if (fromEvent) {
-          alert('已到测量结束时间，测量完毕');
+          present({
+            message: '已到测量结束时间，测量完毕',
+            duration: 1500,
+            position: 'top',
+          });
         }
         // 上报心电数据
       }
@@ -405,7 +413,7 @@ const App: React.FC = () => {
     if (showDeviceList) {
       startScan();
     }
-  }, [showDeviceList])
+  }, [showDeviceList]);
 
   return (
     <EcgDeviceContext.Provider
@@ -571,7 +579,7 @@ const App: React.FC = () => {
             document.body
           )}
         <IonAlert
-          header="确认断开心电贴吗？"
+          header="未收集到足够心电数据，是否强制断开?"
           mode="ios"
           isOpen={isExitShow}
           buttons={[
