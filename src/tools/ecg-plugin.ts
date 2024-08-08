@@ -1,9 +1,9 @@
-import { registerPlugin } from '@capacitor/core';
-import { createContext } from 'react';
+import { registerPlugin } from "@capacitor/core";
+import { createContext } from "react";
 
 export type Device = { devices: { pid: string; mac: string; name: string }[] };
 
-export type DeviceState = 'offline' | 'online';
+export type DeviceState = "offline" | "online";
 
 export type EcgDevice = {
   deviceState: DeviceState;
@@ -21,6 +21,9 @@ export type EcgDevice = {
   bpm: string;
   nearRawData: EcgRawData[];
   red: boolean;
+  stop: (fromEvent?: boolean) => Promise<void>;
+  finishList: Array<[string, string, number]>;
+  setFinishList: React.Dispatch<React.SetStateAction<[string, string, number][]>>;
 };
 
 export type EcgRawData = { time: number; isLost: boolean; data: number[] };
@@ -56,8 +59,8 @@ export interface HrvReport {
 }
 
 export const EcgDeviceContext = createContext<EcgDevice>({
-  deviceState: 'offline',
-  currentDeviceId: '',
+  deviceState: "offline",
+  currentDeviceId: "",
   connectToDevice: async () => {
     return false;
   },
@@ -68,9 +71,12 @@ export const EcgDeviceContext = createContext<EcgDevice>({
   debugMessages: [],
   reportUUIDs: [],
   addReportUUIDs: () => void 0,
-  bpm: '',
+  bpm: "",
   nearRawData: [],
   red: false,
+  stop: async () => void 0,
+  finishList: [],
+  setFinishList: () => void 0
 });
 
 type EcgPlugin = {
@@ -83,41 +89,102 @@ type EcgPlugin = {
     beatList: number[];
   }) => Promise<{ data: HrvReport }>;
   addListener(
-    eventName: 'ecgDeviceFound',
+    eventName: "ecgDeviceFound",
     listener: (device: Device) => void
   ): void;
   addListener(
-    eventName: 'ecgRawMessage',
+    eventName: "ecgRawMessage",
     listener: (data: { what: number; arg1: number; arg2: number }) => void
   ): void;
   addListener(
-    eventName: 'ecgRawData',
+    eventName: "ecgRawData",
     listener: (data: EcgRawData) => void
   ): void;
   addListener(
-    eventName: 'heartRate',
+    eventName: "heartRate",
     listener: (data: { heartRate: number }) => void
   ): void;
   addListener(
-    eventName: 'connected',
+    eventName: "connected",
     listener: (data: { success: boolean }) => void
   ): void;
   addListener(
-    eventName: 'ecgResult',
+    eventName: "ecgResult",
     listener: (data: EcgResult) => void
   ): void;
   addListener(
-    eventName: 'plugin-init',
+    eventName: "plugin-init",
     listener: (data: { success: boolean }) => void
   ): void;
-  addListener(eventName: 'battery', listener: (data: any) => void): void;
-  addListener(eventName: 'dis', listener: (data: any) => void): void;
+  addListener(eventName: "battery", listener: (data: any) => void): void;
+  addListener(eventName: "dis", listener: (data: any) => void): void;
   removeAllListeners(): void;
   initEcgPlugin(): void;
   restart(): void;
   stopScan(): void;
 };
 
-const EcgPlugin = registerPlugin<EcgPlugin>('Ecg');
+let EcgPlugin: EcgPlugin;
+if (process.env.REACT_APP_ECG_DEBUG === "true") {
+  console.debug("debug模式，不连接设备");
+  EcgPlugin = {
+    startScan: (props: { time: number }) => {
+      console.log("Starting scan...");
+    },
+    connect: (props: { pid: string }) => {
+      console.log("Connecting to device with pid:", props.pid);
+    },
+    startMonitor: (props: { pid: string }) => {
+      console.log("Starting monitor for device with pid:", props.pid);
+    },
+    stopMonitor: (props: { pid: string }) => {
+      console.log("Stopping monitor for device with pid:", props.pid);
+    },
+    analysisHrv: async (props: {
+      intervalList: number[];
+      beatList: number[];
+    }) => {
+      console.log("Analyzing HRV...");
+      return {
+        data: {
+          mean: 0,
+          sdnn: 0,
+          sdann: 0,
+          sdnni: 0,
+          rmsssd: 0,
+          pnn50: 0,
+          triangularIndex: 0,
+          tp: 0,
+          vlf: 0,
+          lf: 0,
+          hf: 0,
+          lfNorm: 0,
+          hfNorm: 0,
+          ratioLHF: 0,
+          powerData: [],
+          intervalStatistics: [],
+        },
+      };
+    },
+    addListener: (eventName: string, listener: any) => {
+      console.log(`Listener added for event: ${eventName}`);
+    },
+    removeAllListeners: () => {
+      console.log("All listeners removed.");
+    },
+    initEcgPlugin: () => {
+      console.log("ECG plugin initialized.");
+    },
+    restart: () => {
+      console.log("ECG plugin restarted.");
+    },
+    stopScan: () => {
+      console.log("Scan stopped.");
+    },
+  };
+} else {
+  console.debug("Ecg注册，需连接设备");
+  EcgPlugin = registerPlugin<EcgPlugin>("Ecg");
+}
 
 export default EcgPlugin;

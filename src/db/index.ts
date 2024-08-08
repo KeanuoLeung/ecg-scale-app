@@ -36,9 +36,17 @@ export interface EcgRecord {
   title?: string;
 }
 
+export interface FinishedRecord {
+  id?: number;
+  testId?: string,
+  type?: string,
+  finished?: boolean
+}
+
 export class DB extends Dexie {
   reports!: Table<Report>;
   ecgRecords!: Table<EcgRecord>;
+  finishedRecords!: Table<FinishedRecord>;
 
   constructor() {
     super('report');
@@ -47,6 +55,8 @@ export class DB extends Dexie {
         '++id, uuid, scaleUUId, userId, evaReport, originalEcgData, chDetectionResult, hrvReport, timestamp, synced, realName, phone, departmentEvaluationId, individualEvaluationId, title, gender, identificationCard, age, unit',
       ecgRecords:
         '++id, originalEcgData, chDetectionResult, timestamp, synced, hrvReport, reportUUIDList, userId, title',
+      finishedRecords:
+        '++id, testId, type, finished'
     });
   }
 }
