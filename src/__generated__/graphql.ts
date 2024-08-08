@@ -446,6 +446,7 @@ export type Department = {
   isEnable?: Maybe<Scalars['Boolean']['output']>;
   name: Scalars['String']['output'];
   remark?: Maybe<Scalars['String']['output']>;
+  subDepartmentNames?: Maybe<Array<Scalars['String']['output']>>;
   updatedAt: Scalars['DateTime']['output'];
   uuid: Scalars['String']['output'];
 };
@@ -1945,15 +1946,15 @@ export type ReportQuestionChooseInput = {
 
 export type ReportQuestionChooseUseQuestionidAndAnsweridInput = {
   QuestionidAndAnsweridInput: Array<QuestionidAndAnsweridInput>;
-  age: Scalars['Int']['input'];
+  age?: InputMaybe<Scalars['Int']['input']>;
   departmentEvaluationId?: InputMaybe<Scalars['Int']['input']>;
-  gender: Scalars['Int']['input'];
-  identificationCard: Scalars['String']['input'];
+  gender?: InputMaybe<Scalars['Int']['input']>;
+  identificationCard?: InputMaybe<Scalars['String']['input']>;
   individualEvaluationId?: InputMaybe<Scalars['Int']['input']>;
   phone: Scalars['String']['input'];
   realname: Scalars['String']['input'];
   scaleUUid: Scalars['String']['input'];
-  unit: Scalars['String']['input'];
+  unit?: InputMaybe<Scalars['String']['input']>;
   uuid: Scalars['String']['input'];
 };
 
@@ -2253,6 +2254,7 @@ export type SignupInput = {
   departmentId?: InputMaybe<Scalars['Int']['input']>;
   gender?: InputMaybe<Scalars['Int']['input']>;
   identificationCard?: InputMaybe<Scalars['String']['input']>;
+  marital: Scalars['Int']['input'];
   password: Scalars['String']['input'];
   realname?: InputMaybe<Scalars['String']['input']>;
   subDepartmentId?: InputMaybe<Scalars['Int']['input']>;
@@ -2265,6 +2267,7 @@ export type Subdepartment = {
   createdAt: Scalars['DateTime']['output'];
   department: Department;
   departmentId?: Maybe<Scalars['Int']['output']>;
+  departmentName?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
   institutionCode: Scalars['String']['output'];
   isEnable?: Maybe<Scalars['Boolean']['output']>;

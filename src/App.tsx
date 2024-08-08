@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import ReactDOM from 'react-dom';
 import { Redirect, Route, useHistory } from 'react-router-dom';
 import {
@@ -120,6 +120,7 @@ const App: React.FC = () => {
   const [battery, setBattery] = useState<Record<string, number>>({});
   const [red, setRed] = useState(false);
   const [isExitShow, setIsExitShow] = useState(false);
+  const [finishList, setFinishList] = useState<[string, string, number][]>([]);
 
   console.log('this is battery', battery);
 
@@ -128,7 +129,7 @@ const App: React.FC = () => {
   }
 
   function startScan() {
-    EcgPlugin.stopScan();
+    // EcgPlugin.stopScan();
     EcgPlugin.startScan({ time: -1 });
   }
 
@@ -180,6 +181,15 @@ const App: React.FC = () => {
           resolve(true);
         }
       });
+      if (process.env.REACT_APP_ECG_DEBUG === 'true') {
+        connected = true;
+        setCurrentDeviceId('00001');
+        setConnectedTimestamp(Date.now());
+        setDeviceState('online');
+        // 开始监测
+        EcgPlugin.startMonitor({ pid: '00001' });
+        resolve(true);
+      }
       EcgPlugin.addListener('battery', (data) => {
         console.log('battery', data);
         setBattery((batt) => ({ ...batt, [data.pid]: data.battery }));
@@ -303,7 +313,7 @@ const App: React.FC = () => {
     };
   }, [connectedTimestamp, deviceState]);
 
-  async function stopMonitor() {
+  const stopMonitor = useCallback(async () => {
     const _ecgRawDatas = [...ecgRawDatas];
     const _ecgResults = [...ecgResults];
     const hrvReport = await EcgPlugin.analysisHrv({
@@ -330,54 +340,57 @@ const App: React.FC = () => {
       ecgResults: _ecgResults,
       hrvReport: hrvReport.data,
     };
-  }
+  }, [currentDeviceId]);
 
   const [present] = useIonToast();
 
-  async function stop(fromEvent = false) {
-    console.log('this is stop', fromEvent);
-    try {
-      if (deviceState === 'online') {
-        const result = await stopMonitor();
-        const { ecgRawDatas, ecgResults, hrvReport } = result;
-        updateTest();
-        const res = await localforage.getItem<UserInfo>('user');
-        const realUserName = res?.user?.username ?? '-';
-        db.ecgRecords.add({
-          reportUUIDList: reportUUIDs,
-          originalEcgData: makeArrayCsv(ecgRawDatas ?? []),
-          chDetectionResult: makeArrayCsv(ecgResults ?? []),
-          hrvReport,
-          timestamp: Date.now(),
-          synced: false,
-          userId:
-            Number((await localforage.getItem<UserInfo>('user'))?.user?.id) ??
-            0,
-          title: `${realUserName}-心电测试记录`,
-        });
-        const event = new CustomEvent('stop-monitor');
-        window.dispatchEvent(event);
-        if (fromEvent) {
-          present({
-            message: '已到测量结束时间，测量完毕',
-            duration: 1500,
-            position: 'top',
+  const stop = useCallback(
+    async (fromEvent = false) => {
+      console.log('this is stop', fromEvent);
+      try {
+        if (deviceState === 'online') {
+          const result = await stopMonitor();
+          const { ecgRawDatas, ecgResults, hrvReport } = result;
+          updateTest();
+          const res = await localforage.getItem<UserInfo>('user');
+          const realUserName = res?.user?.username ?? '-';
+          db.ecgRecords.add({
+            reportUUIDList: reportUUIDs,
+            originalEcgData: makeArrayCsv(ecgRawDatas ?? []),
+            chDetectionResult: makeArrayCsv(ecgResults ?? []),
+            hrvReport,
+            timestamp: Date.now(),
+            synced: false,
+            userId:
+              Number((await localforage.getItem<UserInfo>('user'))?.user?.id) ??
+              0,
+            title: `${realUserName}-心电测试记录`,
           });
+          const event = new CustomEvent('stop-monitor');
+          window.dispatchEvent(event);
+          if (fromEvent) {
+            present({
+              message: '已到达成测量结束条件，测量完毕',
+              duration: 1500,
+              position: 'top',
+            });
+          }
+          // 上报心电数据
         }
-        // 上报心电数据
+      } catch (e) {
+        if (fromEvent) {
+          alert('我们还没有收集到足够的心电数据，请稍后手动停止');
+          return;
+        }
+        present({
+          message: '请稍等，我们还没有收集到足够的心电数据',
+          duration: 1500,
+          position: 'top',
+        });
       }
-    } catch (e) {
-      if (fromEvent) {
-        alert('我们还没有收集到足够的心电数据，请稍后手动停止');
-        return;
-      }
-      present({
-        message: '请稍等，我们还没有收集到足够的心电数据',
-        duration: 1500,
-        position: 'top',
-      });
-    }
-  }
+    },
+    [deviceState, present, reportUUIDs, stopMonitor]
+  );
 
   useEffect(() => {
     const lis = () => {
@@ -388,20 +401,47 @@ const App: React.FC = () => {
     return () => {
       window.removeEventListener('out-stop', lis);
     };
-  }, [deviceState]);
+  }, [deviceState, stop]);
 
   useEffect(() => {
     let timer: any;
+    let timer2: any;
     if (deviceState === 'online') {
       timer = setTimeout(() => {
         if ((window as any).heart === '-') {
           alert('未采集到心电数据，请检查心电贴');
         }
       }, 1000 * 30);
+      timer2 = setInterval(() => {
+        // 量表未开始做
+        if (!sessionStorage.getItem('heartStart')) {
+          return;
+        }
+        // 有数据
+        if ((window as any).heart !== '-') {
+          sessionStorage.setItem('heartStart', `${0}`);
+          return;
+        } else {
+          // 无数据
+          const currentNumber = parseInt(
+            sessionStorage.getItem('heartStart')!,
+            10
+          );
+          if (currentNumber >= 61) {
+            // 60秒无数据
+            stop(true);
+            sessionStorage.removeItem('heartStart');
+            alert('一分钟内无心电数据，已停止采集');
+            return;
+          }
+          sessionStorage.setItem('heartStart', `${currentNumber + 1}`); // 60秒内无数据计数
+        }
+      }, 1000);
     }
 
     return () => {
       clearTimeout(timer);
+      clearTimeout(timer2);
     };
   }, [deviceState]);
 
@@ -429,37 +469,40 @@ const App: React.FC = () => {
         bpm: heartRate,
         nearRawData: nearRawDatas,
         red,
+        stop,
+        finishList,
+        setFinishList,
       }}
     >
       <div>
         <IonApp>
           <IonReactRouter>
             <IonRouterOutlet>
-              <Route exact path="/home">
+              <Route exact path='/home'>
                 <Home />
               </Route>
-              <Route exact path="/eva-list">
+              <Route exact path='/eva-list'>
                 <EvaluationList />
               </Route>
-              <Route exact path="/ecg-only">
+              <Route exact path='/ecg-only'>
                 <EcgOnly />
               </Route>
-              <Route exact path="/eva-detail">
+              <Route exact path='/eva-detail'>
                 <EvaluationDetail />
               </Route>
-              <Route exact path="/settings">
+              <Route exact path='/settings'>
                 <Settings />
               </Route>
-              <Route exact path="/login">
+              <Route exact path='/login'>
                 <Login />
               </Route>
-              <Route exact path="/sync-list">
+              <Route exact path='/sync-list'>
                 <SyncList />
               </Route>
-              <Route exact path="/time-set">
+              <Route exact path='/time-set'>
                 <TimeSet />
               </Route>
-              <Route exact path="/welcome">
+              <Route exact path='/welcome'>
                 <div
                   style={{
                     display: 'flex',
@@ -472,7 +515,7 @@ const App: React.FC = () => {
                   <h1>请点击下方按钮授权后</h1>
                   <h1>重新开启本APP</h1>
                   <div
-                    className="next-question"
+                    className='next-question'
                     style={{ padding: '0 50px' }}
                     onClick={() => {
                       localStorage.setItem('welcome', '11');
@@ -483,25 +526,25 @@ const App: React.FC = () => {
                   </div>
                 </div>
               </Route>
-              <Route exact path="/">
-                <Redirect to="/eva-list" />
+              <Route exact path='/'>
+                <Redirect to='/eva-list' />
               </Route>
             </IonRouterOutlet>
           </IonReactRouter>
         </IonApp>
         <IonModal isOpen={showDeviceList}>
           <IonLoading
-            mode="ios"
-            message="正在连接设备，请确保设备处于打开状态..."
+            mode='ios'
+            message='正在连接设备，请确保设备处于打开状态...'
             isOpen={connecting}
           ></IonLoading>
-          <div className="list">
-            <div className="list-title" style={{ marginBottom: 24 }}>
+          <div className='list'>
+            <div className='list-title' style={{ marginBottom: 24 }}>
               请选择心电贴进行连接
             </div>
             {deviceList.map((device) => (
               <div
-                className="list-card"
+                className='list-card'
                 key={device.pid}
                 onClick={() => {
                   const event = new CustomEvent('device-selected');
@@ -514,6 +557,21 @@ const App: React.FC = () => {
                 {device.pid}
               </div>
             ))}
+            {process.env.REACT_APP_ECG_DEBUG === 'true' && (
+              <div
+                className='list-card'
+                key='00001'
+                onClick={() => {
+                  const event = new CustomEvent('device-selected');
+                  (event as any)!.value = {
+                    pid: '00001',
+                  };
+                  window.dispatchEvent(event);
+                }}
+              >
+                00001
+              </div>
+            )}
           </div>
         </IonModal>
         {deviceState === 'online' &&
@@ -537,7 +595,7 @@ const App: React.FC = () => {
                   }}
                 >
                   <div
-                    className="ecg-status"
+                    className='ecg-status'
                     onClick={() => {
                       if (showCancel) {
                         stop();
@@ -548,8 +606,8 @@ const App: React.FC = () => {
                     ⏸️ 停止
                   </div>
                   <div
-                    className="ecg-status"
-                    id="present-alert"
+                    className='ecg-status'
+                    id='present-alert'
                     onClick={() => {
                       setIsExitShow(true);
                     }}
@@ -559,17 +617,17 @@ const App: React.FC = () => {
                   </div>
                 </div>
               ) : (
-                <div className="ecg-status">
-                  <div className="ecg-heart">❤️</div>
-                  <div className="ecg-status-right">
-                    <div className="ecg-status-bpm" id="bpmbpm">
+                <div className='ecg-status'>
+                  <div className='ecg-heart'>❤️</div>
+                  <div className='ecg-status-right'>
+                    <div className='ecg-status-bpm' id='bpmbpm'>
                       {heartRate}bpm
                     </div>
-                    <div className="ecg-status-bpm" id="timetime">
+                    <div className='ecg-status-bpm' id='timetime'>
                       {timeShow}
                     </div>
-                    <div className="pid">{curShowPid}</div>
-                    <div className="pid" style={{ marginLeft: -4 }}>
+                    <div className='pid'>{curShowPid}</div>
+                    <div className='pid' style={{ marginLeft: -4 }}>
                       🔋{battery[curShowPid]}%
                     </div>
                   </div>
@@ -579,8 +637,8 @@ const App: React.FC = () => {
             document.body
           )}
         <IonAlert
-          header="未收集到足够心电数据，是否强制断开?"
-          mode="ios"
+          header='未收集到足够心电数据，是否强制断开?'
+          mode='ios'
           isOpen={isExitShow}
           buttons={[
             {

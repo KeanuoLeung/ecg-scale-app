@@ -22,6 +22,7 @@ import FormControlLabel from '@mui/material/FormControlLabel';
 import FormControl from '@mui/material/FormControl';
 import FormLabel from '@mui/material/FormLabel';
 import TextField from '@mui/material/TextField';
+import { finished } from 'stream';
 
 enum QuestionType {
   Single = 1,
@@ -71,12 +72,16 @@ function EvaluationDetail() {
     stopMonitor,
     cancelMonitor,
     addReportUUIDs,
+    stop,
   } = useContext(EcgDeviceContext);
 
   useEffect(() => {
     localforage.getItem<UserInfo>('user').then((res) => {
       setUserType((res?.role as any) ?? 'ADMIN');
     });
+    if (!sessionStorage.getItem('heartStart')) {
+      sessionStorage.setItem('heartStart', `${0}`);
+    }
   }, []);
 
   useEffect(() => {
@@ -272,12 +277,43 @@ function EvaluationDetail() {
         unit,
         ...extra,
       });
+      sessionStorage.setItem('hasLoadedOnce', 'true');
+      if (
+        extra.individualEvaluationId !== null &&
+        extra.departmentEvaluationId === null
+      ) {
+        // 个人逻辑
+        await db.finishedRecords
+          .where('testId')
+          .equals(extra.test_uuid!)
+          .modify({ finished: true });
+        const getCount = await db.finishedRecords
+          .where('type')
+          .equals('individual')
+          .and((item) => item.finished === false)
+          .count();
+        // alert(getCount);
+        if (getCount === 0) {
+          stop(true);
+        }
+      } else if (
+        extra.individualEvaluationId === null &&
+        extra.departmentEvaluationId !== null
+      ) {
+        // 团队逻辑
+      }
       history.back();
       // id &&saveReport({
       //   QuestionidAndAnsweridInput: answers,
       //   scaleId: id,
       // });
     } else {
+      // 个人逻辑
+      await db.finishedRecords
+        .where('testId')
+        .equals(extra.test_uuid!)
+        .modify({ finished: true });
+
       scrollToNext(idx + 1);
     }
   };
@@ -304,8 +340,8 @@ function EvaluationDetail() {
         }}
       >
         <input
-          type="radio"
-          className="option-input radio"
+          type='radio'
+          className='option-input radio'
           onChange={() => void 0}
           checked={answerMap[question?.id] === answer?.id}
         />
@@ -329,8 +365,8 @@ function EvaluationDetail() {
         }
       >
         <input
-          type="radio"
-          className="option-input radio"
+          type='radio'
+          className='option-input radio'
           onChange={() => void 0}
           checked={answerMap[question?.id] === answer?.id}
         />
@@ -368,7 +404,7 @@ function EvaluationDetail() {
         }}
       >
         <input
-          type="checkbox"
+          type='checkbox'
           className={'option-input checkbox'}
           onChange={() => void 0}
           checked={
@@ -383,7 +419,7 @@ function EvaluationDetail() {
   const renderBlank = (question: any) => (
     <div>
       <input
-        className="question-item-input"
+        className='question-item-input'
         value={String(answerMap[question.id] ?? '')}
         onChange={(e) =>
           setAnswerMap((am) => {
@@ -411,8 +447,8 @@ function EvaluationDetail() {
   const userInfo = (
     <div>
       <div
-        className="detail"
-        id="question-con"
+        className='detail'
+        id='question-con'
         onScroll={(e) => {
           const progress =
             (e.target as any).scrollTop /
@@ -421,15 +457,15 @@ function EvaluationDetail() {
           barRef.current && (barRef.current.style.height = `${vh}vh`);
         }}
       >
-        <div className="detail-card-container">
-          <div className="detail-card">
-            <div className="question-type">信息录入</div>
-            <div className="detail-title">请输入受试者的个人信息</div>
+        <div className='detail-card-container'>
+          <div className='detail-card'>
+            <div className='question-type'>信息录入</div>
+            <div className='detail-title'>请输入受试者的个人信息</div>
             <div style={{ marginTop: 12 }}>
               <TextField
-                id="standard-basic"
-                label="受试者姓名"
-                variant="standard"
+                id='standard-basic'
+                label='受试者姓名'
+                variant='standard'
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 style={{ width: '100%' }}
@@ -437,9 +473,9 @@ function EvaluationDetail() {
             </div>
             <div style={{ marginTop: 12 }}>
               <TextField
-                id="standard-basic"
-                label="受试者手机号"
-                variant="standard"
+                id='standard-basic'
+                label='受试者手机号'
+                variant='standard'
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 style={{ width: '100%' }}
@@ -447,7 +483,7 @@ function EvaluationDetail() {
             </div>
             <div style={{ marginTop: 12 }}>
               <FormControl>
-                <FormLabel id="demo-row-radio-buttons-group-label">
+                <FormLabel id='demo-row-radio-buttons-group-label'>
                   性别
                 </FormLabel>
                 <RadioGroup
@@ -456,20 +492,20 @@ function EvaluationDetail() {
                   onChange={(e: any) => {
                     setGender(e.target.value);
                   }}
-                  aria-labelledby="demo-row-radio-buttons-group-label"
-                  name="row-radio-buttons-group"
+                  aria-labelledby='demo-row-radio-buttons-group-label'
+                  name='row-radio-buttons-group'
                 >
-                  <FormControlLabel value={0} control={<Radio />} label="男" />
-                  <FormControlLabel value={1} control={<Radio />} label="女" />
+                  <FormControlLabel value={0} control={<Radio />} label='男' />
+                  <FormControlLabel value={1} control={<Radio />} label='女' />
                 </RadioGroup>
               </FormControl>
             </div>
             <div style={{ marginTop: 2 }}>
               <TextField
-                id="standard-basic"
-                label="年龄"
-                variant="standard"
-                type="number"
+                id='standard-basic'
+                label='年龄'
+                variant='standard'
+                type='number'
                 value={age}
                 onChange={(e) => setAge(e.target.value as any)}
                 style={{ width: '100%' }}
@@ -477,9 +513,9 @@ function EvaluationDetail() {
             </div>
             <div style={{ marginTop: 12 }}>
               <TextField
-                id="standard-basic"
-                label="证件号"
-                variant="standard"
+                id='standard-basic'
+                label='证件号'
+                variant='standard'
                 value={identificationCard}
                 onChange={(e) => setIdentificationCard(e.target.value)}
                 style={{ width: '100%' }}
@@ -487,17 +523,17 @@ function EvaluationDetail() {
             </div>
             <div style={{ marginTop: 12 }}>
               <TextField
-                id="standard-basic"
-                label="单位"
-                variant="standard"
+                id='standard-basic'
+                label='单位'
+                variant='standard'
                 value={unit}
                 onChange={(e) => setUnit(e.target.value)}
                 style={{ width: '100%' }}
               />
             </div>
-            <div className="question-spacer"></div>
+            <div className='question-spacer'></div>
             <div
-              className="next-question"
+              className='next-question'
               onClick={() => {
                 if (!username) {
                   alert('请先填写受试者姓名');
@@ -536,11 +572,11 @@ function EvaluationDetail() {
 
   const detail = (
     <div>
-      <div className="progress-bar" ref={barRef}></div>
-      <div className="total">总题数：{skipedQuestions.length}题</div>
+      <div className='progress-bar' ref={barRef}></div>
+      <div className='total'>总题数：{skipedQuestions.length}题</div>
       <div
-        className="detail"
-        id="question-con"
+        className='detail'
+        id='question-con'
         onScroll={(e) => {
           const progress =
             (e.target as any).scrollTop /
@@ -551,15 +587,15 @@ function EvaluationDetail() {
       >
         {skipedQuestions.map((question, idx, arr) => (
           <div
-            className="detail-card-container"
+            className='detail-card-container'
             key={question.id}
             id={`question-${idx}`}
           >
-            <div className="detail-card">
-              <div className="question-type">
+            <div className='detail-card'>
+              <div className='question-type'>
                 {QuestionTypeTitle[question.type as QuestionType]}
               </div>
-              <div className="detail-title">
+              <div className='detail-title'>
                 {question.idx + 1}.{question.name}
               </div>
               {question.questionImg && (
@@ -575,9 +611,9 @@ function EvaluationDetail() {
               {question.type === QuestionType.Image &&
                 renderImageSelect(question)}
               {question.type === QuestionType.Blank && renderBlank(question)}
-              <div className="question-spacer"></div>
+              <div className='question-spacer'></div>
               <div
-                className="next-question"
+                className='next-question'
                 onClick={() => {
                   next(question, idx, arr);
                 }}

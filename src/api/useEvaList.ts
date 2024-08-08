@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { ScaleEvaluation } from '../__generated__/graphql';
 import localforage from 'localforage';
 import { UserInfo, getList, getScaleDetail } from '.';
@@ -7,7 +7,7 @@ import { useHistory } from 'react-router';
 function useEvaList(): [list: Partial<ScaleEvaluation>[], refresh: () => void] {
   const history = useHistory();
   const [evaList, setEvaList] = useState<Partial<ScaleEvaluation>[]>([]);
-  async function run() {
+  const run = useCallback(async () => {
     const items =
       (await localforage.getItem<Partial<ScaleEvaluation>[]>('evaList')) ?? [];
     setEvaList(items);
@@ -27,10 +27,10 @@ function useEvaList(): [list: Partial<ScaleEvaluation>[], refresh: () => void] {
         localforage.setItem(`scale-${eva.test_uuid}`, detail);
       }
     }
-  }
+  }, [history])
   useEffect(() => {
     run();
-  }, []);
+  }, [run]);
 
   return [evaList, run];
 }

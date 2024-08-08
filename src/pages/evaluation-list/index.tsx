@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useState } from 'react';
 import localforage from 'localforage';
 
 import './index.css';
@@ -10,7 +10,7 @@ import {
   useIonViewDidEnter,
   useIonViewDidLeave,
 } from '@ionic/react';
-import { db } from '../../db';
+import { db, FinishedRecord } from '../../db';
 import { EcgDeviceContext } from '../../tools/ecg-plugin';
 import { Html5QrcodeScanner, Html5Qrcode } from 'html5-qrcode';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
@@ -39,7 +39,27 @@ type Evaluation = {
   isEnable: boolean;
 };
 
-(window as any).upTest = updateTest
+(window as any).upTest = updateTest;
+
+function areFinishListEqualDeep(
+  a: FinishedRecord[],
+  b: FinishedRecord[]
+): boolean {
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) {
+    if (!areObjectsEqual(a[i], b[i])) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function areObjectsEqual(obj1: FinishedRecord, obj2: FinishedRecord): boolean {
+  return (
+    obj1.testId === obj2.testId && obj1.type === obj2.type
+    // obj1.finished === obj2.finished
+  );
+}
 
 function EvaluationList() {
   const history = useHistory();
@@ -52,6 +72,7 @@ function EvaluationList() {
     currentDeviceId,
     stopMonitor,
     cancelMonitor,
+    setFinishList,
   } = useContext(EcgDeviceContext);
 
   const [userType, setUserType] = useState<'ADMIN' | 'USER'>('USER');
@@ -69,16 +90,17 @@ function EvaluationList() {
     if (!localStorage.getItem('endpoint')) {
       history.push('/settings');
     }
-  }, []);
+  }, [history]);
 
-  const checkDisabled = async () => {
+  const checkDisabled = useCallback(async () => {
     const reportsToUpload = await db.reports.toArray();
 
     const result = [];
     const outdated = [];
     const now = Date.now();
+    const finishList: FinishedRecord[] = [];
 
-    for (const scale of list) {
+    for (const [index, scale] of list.entries()) {
       if (
         scale.releaseType === ReleaseType.SINGLE &&
         (reportsToUpload.some((report) => {
@@ -98,14 +120,48 @@ function EvaluationList() {
         new Date(scale.effectiveEndTime).valueOf() < now
       ) {
         outdated.push(scale.test_uuid ?? '');
+      } else {
+        if (
+          scale.isEnable &&
+          ((scale.releaseType === ReleaseType.SINGLE && !scale.isTest) ||
+            scale.releaseType === ReleaseType.MULTIPLE)
+        ) {
+          finishList.push({
+            testId: scale.test_uuid!,
+            type: scale.type || 'individual',
+            finished: false,
+          });
+        }
+      }
+    }
+
+    if (!sessionStorage.getItem('hasLoadedOnce')) {
+      try {
+        const getAllFinishList = await db.finishedRecords.toArray();
+        const getFinishList = getAllFinishList.map(({ id, ...rest }) => rest);
+        if (!areFinishListEqualDeep(getFinishList, finishList)) {
+          console.log('初始化完成表');
+          console.log('清空 finishedRecords 表');
+          await db.finishedRecords.clear();
+          console.log('添加数据到 finishedRecords 表:', finishList);
+          const lastKey = await db.finishedRecords.bulkAdd(finishList);
+          if (typeof lastKey !== 'undefined') {
+            console.log('数据添加成功, 最后一条记录的键值为:', lastKey);
+          } else {
+            console.log('数据添加失败');
+          }
+        }
+      } catch (error) {
+        console.error('数据库操作失败', error);
       }
     }
 
     console.log('check disabled', { reportsToUpload, disabledReports, result });
+    console.log('evalist', list, outdated, finishList);
 
     setDisabledReports(result);
     setOutdatedReports(outdated);
-  };
+  }, [list]);
 
   useIonViewDidEnter(() => {
     refresh();
@@ -119,11 +175,11 @@ function EvaluationList() {
     return () => {
       clearInterval(re);
     };
-  }, []);
+  }, [refresh]);
 
   useEffect(() => {
     checkDisabled();
-  }, [list]);
+  }, [checkDisabled, list]);
 
   useEffect(() => {
     let syncing = false;
@@ -137,9 +193,11 @@ function EvaluationList() {
         const reports = (await db.reports.toArray()).filter(
           (resport) => !resport.synced
         );
-  
-        const ecgs = (await db.ecgRecords.toArray()).filter((ecg) => !ecg.synced);
-  
+
+        const ecgs = (await db.ecgRecords.toArray()).filter(
+          (ecg) => !ecg.synced
+        );
+
         for (const report of reports) {
           const success = await saveReport({
             QuestionidAndAnsweridInput: report.evaReport,
@@ -154,12 +212,12 @@ function EvaluationList() {
             age: Number(report.age ?? 0),
             unit: report.unit,
           });
-  
+
           if (success) {
             report.id && db.reports.update(report.id, { synced: true });
           }
         }
-  
+
         for (const ecg of ecgs) {
           const {
             id,
@@ -204,7 +262,7 @@ function EvaluationList() {
             id && db.ecgRecords.update(id, { synced: true });
           }
         }
-      } catch(e) {
+      } catch (e) {
         syncing = false;
       }
       syncing = false;
@@ -226,14 +284,30 @@ function EvaluationList() {
   const [count, setCount] = useState(0);
 
   useEffect(() => {
-    setInterval(() => {
-      getTest().then((test: any) => {
-        console.log('test', test);
-        setCount(test.count);
-      });
-    }, 1000);
+    if (process.env.REACT_APP_ECG_DEBUG === 'true') {
+      const timerId = setTimeout(() => {
+        getTest().then((test: any) => {
+          // console.log('test', test);
+          // alert('test\n' + test.count);
+          setCount(20);
+        });
+      }, 1000);
+      const intervalId = setInterval(() => {
+        (window as any).heart = '60';
+      }, 5000);
+      return () => {
+        clearInterval(intervalId);
+        clearTimeout(timerId);
+      };
+    } else {
+      setInterval(() => {
+        getTest().then((test: any) => {
+          console.log('test', test);
+          setCount(test.count);
+        });
+      }, 1000);
+    }
   }, []);
-
 
   console.log('evas', list);
 
@@ -242,8 +316,8 @@ function EvaluationList() {
   return (
     <IonPage style={{ overflow: 'scroll' }}>
       <IonActionSheet
-        header="是否连接心电仪测试"
-        mode="ios"
+        header='是否连接心电仪测试'
+        mode='ios'
         isOpen={Boolean(opingEva)}
         onDidDismiss={() => {
           setOpingEva('');
@@ -284,8 +358,8 @@ function EvaluationList() {
         ]}
       ></IonActionSheet>
       <IonActionSheet
-        header="更多操作"
-        mode="ios"
+        header='更多操作'
+        mode='ios'
         isOpen={opingSettings}
         onDidDismiss={() => {
           setOpingSettings(false);
@@ -345,12 +419,12 @@ function EvaluationList() {
         ]}
       ></IonActionSheet>
       <IonLoading
-        mode="ios"
-        message="正在连接设备，请确保设备处于打开状态..."
+        mode='ios'
+        message='正在连接设备，请确保设备处于打开状态...'
         isOpen={connecting}
       ></IonLoading>
-      <div className="list">
-        <div className="list-title">
+      <div className='list'>
+        <div className='list-title'>
           <span>🌞 欢迎您，{userName}</span>
           <span
             onClick={() => {
@@ -360,17 +434,17 @@ function EvaluationList() {
             ⚙️
           </span>
         </div>
-        {/* <div id="reader" style={{ width: 600, display: 'none' }}></div> */}
-        <div className="list-subtitle" style={{ marginBottom: 2 }}>
+        {/* <div id='reader' style={{ width: 600, display: 'none' }}></div> */}
+        <div className='list-subtitle' style={{ marginBottom: 2 }}>
           用户名：{realusername}
         </div>
-        <div className="list-subtitle" style={{ marginBottom: 2 }}>
+        <div className='list-subtitle' style={{ marginBottom: 2 }}>
           请选择量表开始测试
         </div>
-        <div className="list-subtitle">剩余心电测试次数：{count}次</div>
+        <div className='list-subtitle'>剩余心电测试次数：{count}次</div>
 
         {/* {debugMessages.map((msg) => (
-          <div key={msg} className="list-subtitle">
+          <div key={msg} className='list-subtitle'>
             {msg}
           </div>
         ))} */}
@@ -393,10 +467,10 @@ function EvaluationList() {
                 ❤️ 进行心率变异性测试
               </div>
             </div>
-            <div className="divider"></div>
+            <div className='divider'></div>
           </>
         )}
-        <div className="list-subtitle" style={{ marginBottom: 5 }}>
+        <div className='list-subtitle' style={{ marginBottom: 5 }}>
           个人量表
         </div>
         {list
@@ -445,17 +519,17 @@ function EvaluationList() {
                   '(无效)'}
               </div>
               {userType === 'ADMIN' && (
-                <div className="list-card-date">
+                <div className='list-card-date'>
                   创建于：{new Date(evaluation.createdAt).toLocaleString()}
                 </div>
               )}
               {userType === 'USER' && (
                 <>
-                  <div className="list-card-date">
+                  <div className='list-card-date'>
                     开始：
                     {new Date(evaluation.effectiveStartTime).toLocaleString()}
                   </div>
-                  <div className="list-card-date">
+                  <div className='list-card-date'>
                     结束：
                     {new Date(evaluation.effectiveEndTime).toLocaleString()}
                   </div>
@@ -463,8 +537,8 @@ function EvaluationList() {
               )}
             </div>
           ))}
-        <div className="divider"></div>
-        <div className="list-subtitle" style={{ marginBottom: 5 }}>
+        <div className='divider'></div>
+        <div className='list-subtitle' style={{ marginBottom: 5 }}>
           团体量表
         </div>
         {list
@@ -514,17 +588,17 @@ function EvaluationList() {
                   '(无效)'}
               </div>
               {userType === 'ADMIN' && (
-                <div className="list-card-date">
+                <div className='list-card-date'>
                   创建于：{new Date(evaluation.createdAt).toLocaleString()}
                 </div>
               )}
               {userType === 'USER' && (
                 <>
-                  <div className="list-card-date">
+                  <div className='list-card-date'>
                     开始：
                     {new Date(evaluation.effectiveStartTime).toLocaleString()}
                   </div>
-                  <div className="list-card-date">
+                  <div className='list-card-date'>
                     结束：
                     {new Date(evaluation.effectiveEndTime).toLocaleString()}
                   </div>
