@@ -354,7 +354,7 @@ const App: React.FC = () => {
           updateTest();
           const res = await localforage.getItem<UserInfo>('user');
           const realUserName = res?.user?.username ?? '-';
-          db.ecgRecords.add({
+          await db.ecgRecords.add({
             reportUUIDList: reportUUIDs,
             originalEcgData: makeArrayCsv(ecgRawDatas ?? []),
             chDetectionResult: makeArrayCsv(ecgResults ?? []),

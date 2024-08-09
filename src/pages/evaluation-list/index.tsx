@@ -380,6 +380,7 @@ function EvaluationList() {
               action: 'refresh',
             },
             handler: () => {
+              sessionStorage.removeItem('hasLoadedOnce');
               refresh();
               checkDisabled();
               // TODO: toast

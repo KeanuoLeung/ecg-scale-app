@@ -294,7 +294,7 @@ function EvaluationDetail() {
           .count();
         // alert(getCount);
         if (getCount === 0) {
-          stop(true);
+          await stop(true);
         }
       } else if (
         extra.individualEvaluationId === null &&
