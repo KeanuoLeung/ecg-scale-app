@@ -694,8 +694,8 @@ function EvaluationDetail() {
           style={{ transform: `translateX(-${currentIndex * 100}%)` }}
         >
           {skipedQuestions.map((question, idx, arr) => (
-            <>
-              <div className='slide' key={`question-${idx}`}>
+            <div className='clide-container' key={`question-${idx}`}>
+              <div className='slide'>
                 <div className='question-type'>
                   {QuestionTypeTitle[question.type as QuestionType]}
                 </div>
@@ -736,7 +736,7 @@ function EvaluationDetail() {
                   </div>
                 </div>
               </div>
-            </>
+            </div>
           ))}
         </div>
       </div>

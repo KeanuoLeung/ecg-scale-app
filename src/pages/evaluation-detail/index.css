@@ -159,6 +159,7 @@ label {
   position: relative;
   overflow: hidden;
   width: 100%;
+  /* padding: 20px; */
 }
 
 .progress-bar {
@@ -193,6 +194,10 @@ label {
   /* padding-bottom: 100px; */
 }
 
+.clide-container{
+  min-width: 100%;
+  padding: 10px;
+}
 .slide {
   min-width: 100%;
   /* box-sizing: border-box; */
