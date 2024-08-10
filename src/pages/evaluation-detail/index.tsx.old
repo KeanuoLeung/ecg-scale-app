@@ -217,115 +217,7 @@ function EvaluationDetail() {
 
   const [present] = useIonToast();
 
-  // const next = async (question: any, idx: any, arr: any[]) => {
-  //   // check first
-
-  //   if (ansRef.current[question.id] === undefined) {
-  //     alert('请先作答此题目。');
-  //     return;
-  //   }
-  //   // let result: {
-  //   //   ecgRawDatas: EcgRawData[];
-  //   //   ecgResults: EcgResult[];
-  //   //   hrvReport?: HrvReport | undefined;
-  //   // } | null = null;
-  //   if (idx === arr.length - 1) {
-  //     const firstNot = skipedQuestions.findIndex(
-  //       (question) => !answerMap[question.id]
-  //     );
-  //     if (firstNot !== -1) {
-  //       alert('请作答所有题目');
-  //       scrollToNext(firstNot);
-  //       return;
-  //     }
-  //     // try {
-  //     //   if (deviceState === 'online') {
-  //     //     result = await stopMonitor();
-  //     //     // 上报心电数据
-  //     //
-  //     //   }
-  //     // } catch (e) {
-  //     //   present({
-  //     //     message: '请稍等，我们还没有收集到足够的心电数据',
-  //     //     duration: 1500,
-  //     //     position: 'top',
-  //     //   });
-  //     //   return;
-  //     //
-  //     // }
-
-  //     const answers = generateQuestionAnswers();
-  //     const _uuid = uuid();
-  //     addReportUUIDs(_uuid);
-  //     db.reports.add({
-  //       scaleUUId: extra.uuid ?? '',
-  //       userId:
-  //         Number((await localforage.getItem<UserInfo>('user'))?.user?.id) ?? 0,
-  //       evaReport: answers,
-  //       // originalEcgData: makeArrayCsv(result?.ecgRawDatas ?? []),
-  //       // chDetectionResult: makeArrayCsv(result?.ecgResults ?? []),
-  //       // hrvReport: result?.hrvReport,
-  //       originalEcgData: '',
-  //       chDetectionResult: '',
-  //       //  hrvReport: result?.hrvReport,
-  //       timestamp: Date.now(),
-  //       realName: username,
-  //       phone: phone,
-  //       gender: gender as number,
-  //       identificationCard,
-  //       age: age as number,
-  //       unit,
-  //       ...extra,
-  //     });
-  //     sessionStorage.setItem('hasLoadedOnce', 'true');
-  //     if (
-  //       extra.individualEvaluationId !== null &&
-  //       extra.departmentEvaluationId === null
-  //     ) {
-  //       // 个人逻辑
-  //       await db.finishedRecords
-  //         .where('testId')
-  //         .equals(extra.test_uuid!)
-  //         .modify({ finished: true });
-  //       const getCount = await db.finishedRecords
-  //         .where('type')
-  //         .equals('individual')
-  //         .and((item) => item.finished === false)
-  //         .count();
-  //       // alert(getCount);
-  //       if (getCount === 0) {
-  //         await stop(true);
-  //       }
-  //     } else if (
-  //       extra.individualEvaluationId === null &&
-  //       extra.departmentEvaluationId !== null
-  //     ) {
-  //       // 团队逻辑
-  //     }
-  //     history.back();
-  //     // id &&saveReport({
-  //     //   QuestionidAndAnsweridInput: answers,
-  //     //   scaleId: id,
-  //     // });
-  //   } else {
-  //     // 个人逻辑
-  //     await db.finishedRecords
-  //       .where('testId')
-  //       .equals(extra.test_uuid!)
-  //       .modify({ finished: true });
-
-  //     scrollToNext(idx + 1);
-  //   }
-  // };
-
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const goPrev = () => {
-    if (currentIndex > 0) {
-      setCurrentIndex(currentIndex - 1);
-    }
-  };
-
-  const goNext = async (question: any, idx: any, arr: any[]) => {
+  const next = async (question: any, idx: any, arr: any[]) => {
     // check first
 
     if (ansRef.current[question.id] === undefined) {
@@ -442,7 +334,7 @@ function EvaluationDetail() {
 
           if (idx !== skipedQuestions.length - 1) {
             setTimeout(() => {
-              goNext(question, idx, arr);
+              next(question, idx, arr);
             }, 50);
           }
         }}
@@ -540,22 +432,17 @@ function EvaluationDetail() {
     </div>
   );
 
-  // const scrollToNext = (idx: number) => {
-  //   const nextId = `#question-${idx}`;
-  //   const nextBox = document?.querySelector(nextId)?.getBoundingClientRect();
-  //   const con = document.querySelector('#question-con');
-
-  //   if (!con) return;
-  //   con?.scrollTo({
-  //     top: (con?.scrollTop ?? 0) + (nextBox?.top ?? 0) - 20,
-  //     behavior: 'smooth',
-  //   });
-  // };
   const scrollToNext = (idx: number) => {
-    setCurrentIndex(idx);
-  };
+    const nextId = `#question-${idx}`;
+    const nextBox = document?.querySelector(nextId)?.getBoundingClientRect();
+    const con = document.querySelector('#question-con');
 
-  const progress = ((currentIndex + 1) / skipedQuestions.length) * 100; // 计算进度百分比
+    if (!con) return;
+    con?.scrollTo({
+      top: (con?.scrollTop ?? 0) + (nextBox?.top ?? 0) - 20,
+      behavior: 'smooth',
+    });
+  };
 
   const userInfo = (
     <div>
@@ -685,60 +572,57 @@ function EvaluationDetail() {
 
   const detail = (
     <div>
-      <div className='carousel-container'>
-        <div className='progress-bar' style={{ width: `${progress}%` }}></div>{' '}
-        {/* 进度条 */}
-        <div className='total'>总题数：{skipedQuestions.length}题</div>
-        <div
-          className='carousel-content'
-          style={{ transform: `translateX(-${currentIndex * 100}%)` }}
-        >
-          {skipedQuestions.map((question, idx, arr) => (
-            <>
-              <div className='slide' key={`question-${idx}`}>
-                <div className='question-type'>
-                  {QuestionTypeTitle[question.type as QuestionType]}
-                </div>
-                <div className='detail-title'>
-                  {question.idx + 1}.{question.name}
-                </div>
-                {question.questionImg && (
-                  <img
-                    style={{ borderRadius: 30, marginBottom: 24 }}
-                    src={question.questionImg}
-                  />
-                )}
-                {question.type === QuestionType.Single &&
-                  renderSingleSelect(question, idx, arr)}
-                {question.type === QuestionType.Multiple &&
-                  renderMultiSelect(question)}
-                {question.type === QuestionType.Image &&
-                  renderImageSelect(question)}
-                {question.type === QuestionType.Blank && renderBlank(question)}
-                <div className='question-spacer'></div>
-                <div className='question-button'>
-                  <div
-                    className='button'
-                    onClick={goPrev}
-                    style={{
-                      background: currentIndex === 0 ? 'grey' : '#2850f7',
-                    }}
-                  >
-                    上一题
-                  </div>
-                  <div
-                    className='button'
-                    onClick={() => {
-                      goNext(question, idx, arr);
-                    }}
-                  >
-                    {idx === arr.length - 1 ? '提交问卷' : '下一题'}
-                  </div>
-                </div>
+      <div className='progress-bar' ref={barRef}></div>
+      <div className='total'>总题数：{skipedQuestions.length}题</div>
+      <div
+        className='detail'
+        id='question-con'
+        onScroll={(e) => {
+          const progress =
+            (e.target as any).scrollTop /
+            ((e.target as any).scrollHeight - window.innerHeight);
+          const vh = Math.round(progress * 100);
+          barRef.current && (barRef.current.style.width = `${vh}vw`);
+        }}
+      >
+        {skipedQuestions.map((question, idx, arr) => (
+          <div
+            className='detail-card-container'
+            key={question.id}
+            id={`question-${idx}`}
+          >
+            <div className='detail-card'>
+              <div className='question-type'>
+                {QuestionTypeTitle[question.type as QuestionType]}
               </div>
-            </>
-          ))}
-        </div>
+              <div className='detail-title'>
+                {question.idx + 1}.{question.name}
+              </div>
+              {question.questionImg && (
+                <img
+                  style={{ borderRadius: 30, marginBottom: 24 }}
+                  src={question.questionImg}
+                />
+              )}
+              {question.type === QuestionType.Single &&
+                renderSingleSelect(question, idx, arr)}
+              {question.type === QuestionType.Multiple &&
+                renderMultiSelect(question)}
+              {question.type === QuestionType.Image &&
+                renderImageSelect(question)}
+              {question.type === QuestionType.Blank && renderBlank(question)}
+              <div className='question-spacer'></div>
+              <div
+                className='next-question'
+                onClick={() => {
+                  next(question, idx, arr);
+                }}
+              >
+                {idx === arr.length - 1 ? '提交问卷' : '下一题'}
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );
