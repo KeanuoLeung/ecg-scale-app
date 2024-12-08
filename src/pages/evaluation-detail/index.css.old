@@ -22,21 +22,29 @@
   border: 3px solid #000;
 }
 
-.question-spacer {
-  flex-grow: 1;
+.detail-title {
+  font-size: 22px;
+  font-weight: bold;
+  margin-top: 14px;
+  margin-bottom: 20px;
 }
 
-.next-question {
-  height: 60px;
+.question-type {
+  color: #666;
+}
+
+.checkedrow {
+  background: #2850f766;
+}
+
+.progress-bar {
+  position: fixed;
+  width: 0vw;
+  height: 8px;
+  transition: all 0.1s;
+  top: 0;
+  left: 0;
   background: #2850f7;
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 25px;
-  font-weight: bold;
-  border-radius: 15px;
-  padding: 5%;
 }
 
 .question-item {
@@ -154,22 +162,20 @@ label {
   }
 }
 
-
-.carousel-container {
-  position: relative;
-  overflow: hidden;
-  width: 100%;
-  /* padding: 20px; */
+.question-spacer {
+  flex-grow: 1;
 }
 
-.progress-bar {
-  position: fixed;
-  width: 0vw;
-  height: 8px;
-  transition: all 0.1s;
-  top: 0;
-  left: 0;
+.next-question {
+  height: 60px;
   background: #2850f7;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 25px;
+  font-weight: bold;
+  border-radius: 15px;
 }
 
 .total {
@@ -183,71 +189,4 @@ label {
   padding: 6px;
   opacity: 0.7;
   border-radius: 10px;
-}
-
-.carousel-content {
-  display: flex;
-  transition: transform 0.3s ease-in-out;
-  padding-top: 10%;
-  /* padding: 30px; */
-  height: 100vh;
-  /* padding-bottom: 100px; */
-  /* max-height: 100%; */
-}
-
-.clide-container{
-  min-width: 100%;
-  padding: 20px;
-  max-height: 100%;
-  height: 100%;
-}
-.slide {
-  min-width: 100%;
-  /* box-sizing: border-box; */
-  border-radius: 20px;
-  background: #fff;
-  padding: 20px;
-  min-height: 30vh;
-  margin-bottom: 20px;
-  display: flex;
-  flex-direction: column;
-  overflow: scroll;
-  border: 3px solid #000;
-  max-height: 100%;
-  /* height: 100%; */
-}
-
-.question-type {
-  color: #666;
-}
-
-.detail-title {
-  font-size: 22px;
-  font-weight: bold;
-  margin-top: 14px;
-  margin-bottom: 20px;
-}
-
-.question-button {
-  height: 60px;
-  display: flex;
-  align-items: center;
-  justify-content: center; 
-  margin-top: 5%;
-  width: 100%;
-  gap: 5%;
-}
-
-.question-button .button {
-  flex:1;
-  background: #2850f7;
-  color: #fff;
-  font-size: 25px;
-  font-weight: bold;
-  border-radius: 15px;
-  padding: 10px 0;
-  cursor: pointer;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
 }

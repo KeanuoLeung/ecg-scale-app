@@ -6,32 +6,33 @@ import {
   from,
   HttpLink,
   ApolloLink,
-} from '@apollo/client';
-import { onError } from '@apollo/client/link/error';
-import localforage from 'localforage';
+} from "@apollo/client";
+import { onError } from "@apollo/client/link/error";
+import localforage from "localforage";
 
 const errorLink = onError(({ graphQLErrors, networkError }) => {
   if (
     (graphQLErrors as any)?.[0]?.extensions?.originalError?.statusCode ===
       401 &&
-    location.href !== '/settings'
+    location.href !== "/settings"
   ) {
-    location.href = '/login';
+    location.href = "/login";
   }
 });
 
 const httpLink = new HttpLink({
-  uri: `${localStorage.getItem('endpoint') ?? ''}/graphql`,
+  // uri: `${localStorage.getItem('endpoint') ?? ''}/graphql`,
+  uri: `http://42.192.45.48:7001/graphql`,
 });
 
 const authLink = new ApolloLink((operation, forward) => {
   // add the authorization to the headers
   operation.setContext(({ headers = {} }) => {
-    console.log('header', headers);
+    console.log("header", headers);
     return {
       headers: {
         ...headers,
-        authorization: 'Bearer ' + localStorage.getItem('token'),
+        authorization: "Bearer " + localStorage.getItem("token"),
       },
     };
   });

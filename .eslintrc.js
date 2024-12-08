@@ -16,7 +16,8 @@ module.exports = {
   },
   plugins: [
     'react',
-    '@typescript-eslint'
+    '@typescript-eslint',
+    'react-hooks'
   ],
   settings: {
     react: {
@@ -26,6 +27,8 @@ module.exports = {
   rules: {
     'no-console': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
     'no-debugger': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
-    '@typescript-eslint/no-loss-of-precision': 'off'
+    '@typescript-eslint/no-loss-of-precision': 'off',
+    'react-hooks/rules-of-hooks': 'error',
+    'react-hooks/exhaustive-deps': 'warn'
   }
 }
